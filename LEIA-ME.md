@@ -63,3 +63,62 @@ exemplo salvos só no seu navegador.
 - `index.html` — o site inteiro (painel + tela pública do QR)
 - `config.js` — URL e chave do Supabase
 - `supabase.sql` — tabelas, regras automáticas e segurança
+
+---
+
+# MVP: Leitor de Nota Fiscal (NFC-e) por QR Code
+
+Rota pública, **sem login**: `/nota` (ou `/nota.html`).
+
+1. **Tela da câmera** (`#/`): lê o QR Code do cupom com a biblioteca
+   [html5-qrcode](https://github.com/mebjas/html5-qrcode). Também dá para colar o link
+   na mão ou abrir uma **nota de exemplo**.
+2. **Tela da nota** (`#/nota?url=...`): mostra "Carregando…", chama o backend e lista
+   estabelecimento, data, total e os produtos (quantidade × preço unitário = total).
+
+## Backend: `GET|POST /api/nfce`
+
+```
+POST /api/nfce        { "url": "<link do QR Code>" }
+GET  /api/nfce?url=<link do QR Code>       (url=demo devolve um exemplo)
+```
+
+Resposta:
+
+```json
+{
+  "ok": true,
+  "fonte": "nfparse | sefaz | demo",
+  "estabelecimento": "Supermercado Exemplo Ltda",
+  "cnpj": "12.345.678/0001-90",
+  "data_emissao": "28/10/2026 10:42:15",
+  "valor_total": 87.43,
+  "quantidade_itens": 7,
+  "produtos": [
+    { "id": 1, "codigo": "789...", "nome": "LEITE INTEGRAL 1L", "quantidade": 6,
+      "unidade": "UN", "preco_unitario": 4.99, "preco_total": 29.94 }
+  ]
+}
+```
+
+Em caso de erro: `{ "ok": false, "erro": "mensagem" }`.
+
+De onde vêm os dados:
+- Com a variável **`NFPARSE_API_KEY`** definida, o backend faz `POST { url }` para
+  **`NFPARSE_API_URL`** (padrão `https://api.nfparse.com.br/v1/parse`; confira o
+  endereço certo na documentação da NFParse) e converte a resposta. Os nomes de campo
+  mais comuns (pt/en) são aceitos, então dá para trocar por outra API parecida.
+- Sem chave, ele lê direto a página da SEFAZ. Isso funciona nos estados com o layout
+  padrão do portal da NFC-e (SP, RS, PR, BA, GO e outros). Só aceita links `.gov.br`.
+
+## Rodar
+
+- **No computador**: `npm install` e depois `npm start`. Abra http://localhost:3000/nota.
+  Para usar a chave: `NFPARSE_API_KEY=xxx npm start`.
+- **No celular (precisa de https para a câmera)**: publique na **Vercel** (importe o
+  repositório). Ela publica as páginas e a função `api/nfce.js` sem nenhuma configuração.
+  Em *Settings > Environment Variables*, adicione `NFPARSE_API_KEY` (e `NFPARSE_API_URL`,
+  se precisar). O Netlify Drop **não** roda o backend, então use a Vercel para esta parte.
+
+Arquivos: `nota.html` (as duas telas), `api/nfce.js` (rota), `servidor.js` (Express local),
+`vercel.json` (atalho `/nota`).

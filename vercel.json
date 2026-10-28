@@ -1,0 +1,3 @@
+{
+  "rewrites": [{ "source": "/nota", "destination": "/nota.html" }]
+}

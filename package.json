@@ -1,0 +1,16 @@
+{
+  "name": "expositores",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Painel de expositores + MVP leitor de NFC-e por QR Code",
+  "main": "servidor.js",
+  "scripts": {
+    "start": "node servidor.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
