@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e2552b">
+<title>Expositores</title>
+<style>
+:root{
+  --bg:#f5f3ef;--card:#fff;--ink:#1c1b1a;--muted:#6d6a66;--line:#e7e3dd;--soft:#f0ece6;
+  --accent:#e2552b;--accent-ink:#fff;--accent-soft:#fbe7df;
+  --ok:#1e8a5a;--ok-soft:#e1f3ea;--warn:#b7791f;--warn-soft:#fbf0d9;--bad:#c53030;--bad-soft:#fbe3e3;
+  --radius:14px;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#121212;--card:#1c1c1c;--ink:#f2f0ed;--muted:#a19d98;--line:#2c2b29;--soft:#252422;
+  --accent:#ff6b3d;--accent-soft:#3a2219;--ok:#4cc38a;--ok-soft:#163327;--warn:#e0a84a;--warn-soft:#3a2d14;--bad:#f07272;--bad-soft:#3d1a1a;
+  --shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+h1{font-size:24px;margin:0;letter-spacing:-.01em}
+h2{font-size:15px;margin:0 0 12px;font-weight:650}
+.muted{color:var(--muted)} .small{font-size:13px}
+.demo-bar{background:var(--warn-soft);color:var(--warn);font-size:13px;padding:7px 16px;text-align:center}
+.demo-bar button{background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit}
+
+/* topo / navegação */
+header.top{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:1100px;margin:auto;display:flex;align-items:center;gap:16px;padding:10px 16px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:700;text-decoration:none}
+.brand i{width:28px;height:28px;border-radius:8px;background:var(--accent);display:grid;place-items:center;color:#fff;font-style:normal;font-size:15px}
+nav.tabs{display:flex;gap:4px;margin-left:auto}
+nav.tabs a,nav.tabs button{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:10px;text-decoration:none;color:var(--muted);font-weight:550;background:none;border:0;font:inherit;cursor:pointer}
+nav.tabs a.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+nav.tabs svg{width:18px;height:18px}
+.badge{min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:inline-grid;place-items:center}
+.badge[hidden]{display:none}
+main{max-width:1100px;margin:auto;padding:20px 16px 110px}
+@media (max-width:719px){
+  header.top{backdrop-filter:none;background:var(--bg)}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;margin:0;justify-content:space-around;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom))}
+  nav.tabs a,nav.tabs button{flex-direction:column;gap:2px;font-size:11px;padding:6px 10px;position:relative}
+  nav.tabs a.on{box-shadow:none;color:var(--accent);background:none}
+  nav.tabs .badge{position:absolute;top:0;right:4px}
+}
+
+/* blocos */
+.page-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.page-head .sp{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+.stack>*+*{margin-top:16px}
+.grid2{display:grid;gap:16px;grid-template-columns:1fr}
+@media (min-width:900px){.grid2{grid-template-columns:1fr 1.3fr}}
+.kpis{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+@media (min-width:720px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media (min-width:1000px){.kpis.k6{grid-template-columns:repeat(6,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-size:21px;letter-spacing:-.01em;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi span{font-size:12.5px;color:var(--muted)}
+.kpi.hl{background:var(--accent-soft);border-color:transparent}
+.chart-box{position:relative;height:230px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;border-radius:10px;font:inherit;font-weight:600;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:6px 10px;font-size:13px;border-radius:8px}
+.btn.big{width:100%;padding:15px;font-size:17px;border-radius:12px}
+.btn:disabled{opacity:.55;cursor:default}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--soft);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:6px 11px;border-radius:8px;font:inherit;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:650;padding:3px 9px;border-radius:20px;white-space:nowrap}
+.n-repor{background:var(--bad-soft);color:var(--bad)} .n-breve{background:var(--warn-soft);color:var(--warn)}
+.n-ok{background:var(--ok-soft);color:var(--ok)} .n-off{background:var(--soft);color:var(--muted)}
+.n-aviso{background:var(--accent);color:#fff}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input,.toolbar select{flex:1;min-width:140px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+label{display:block;font-size:13px;font-weight:600;color:var(--muted)}
+label>input,label>select,label>textarea{margin-top:5px}
+.form{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.form .full{grid-column:1/-1}
+.form h3{grid-column:1/-1;margin:6px 0 -4px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.check{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:500}
+.check input{width:auto;margin:0}
+.hint{font-size:12px;color:var(--muted);font-weight:400;margin-top:4px}
+
+.exp-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.exp-card{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);transition:border-color .15s}
+.exp-card:hover{border-color:var(--accent)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.exp-card strong{font-size:16px}
+.bar{height:7px;background:var(--soft);border-radius:4px;overflow:hidden;margin:12px 0 8px}
+.bar span{display:block;height:100%;border-radius:4px;background:var(--ok)}
+.bar.repor span{background:var(--bad)} .bar.breve span{background:var(--warn)}
+
+.list>*{padding:11px 0;border-top:1px solid var(--line)} .list>*:first-child{border-top:0;padding-top:0}
+.rota-item{display:flex;gap:10px;align-items:center;text-decoration:none}
+.rota-item .grow{flex:1;min-width:0}
+.rota-item .grow div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.num-dot{width:26px;height:26px;border-radius:50%;background:var(--soft);display:grid;place-items:center;font-size:12px;font-weight:700;flex:none}
+
+.tbl-wrap{overflow-x:auto;margin:0 -16px;padding:0 16px}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+tbody tr.link{cursor:pointer} tbody tr.link:hover td{background:var(--soft)}
+.icon-btn{border:0;background:none;color:var(--muted);cursor:pointer;padding:4px;border-radius:6px;font-size:16px;line-height:1}
+.icon-btn:hover{color:var(--bad);background:var(--bad-soft)}
+
+.info{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px 18px}
+.info div span{display:block;font-size:12px;color:var(--muted)}
+.info div b{font-weight:550;word-break:break-word}
+.alert{background:var(--accent-soft);border-radius:12px;padding:12px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.alert .grow{flex:1;min-width:180px}
+.back{display:inline-block;color:var(--muted);text-decoration:none;font-size:14px;margin-bottom:8px}
+.empty{text-align:center;padding:36px 16px;color:var(--muted)}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+.erro{background:var(--bad-soft);color:var(--bad);padding:14px;border-radius:12px}
+
+.aviso{display:flex;gap:12px;align-items:flex-start}
+.aviso .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);margin-top:6px;flex:none}
+.aviso.done .dot{background:var(--line)}
+.aviso .grow{flex:1;min-width:0}
+.aviso blockquote{margin:6px 0 0;padding:8px 10px;background:var(--soft);border-radius:8px;font-size:14px}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center}
+.modal[hidden]{display:none}
+.modal-card{background:var(--card);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom))}
+@media (min-width:640px){.modal{align-items:center}.modal-card{border-radius:18px}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-head h2{margin:0;font-size:18px}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.resumo{grid-column:1/-1;background:var(--soft);border-radius:10px;padding:10px 12px;font-size:14px;display:grid;grid-template-columns:1fr auto;gap:4px 12px}
+.resumo b{text-align:right;font-variant-numeric:tabular-nums}
+.qr-box{display:grid;place-items:center;padding:14px;background:#fff;border-radius:12px;margin-bottom:12px}
+.qr-url{font-size:12px;word-break:break-all;color:var(--muted);text-align:center;margin-bottom:14px}
+
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:60;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+#toast div{background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;font-weight:550;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+
+/* tela pública (QR) e login */
+body.publico{background:linear-gradient(160deg,var(--accent-soft),var(--bg) 60%);min-height:100vh}
+.pub{min-height:100vh;display:grid;place-items:center;padding:20px}
+.pub-card{width:100%;max-width:420px;background:var(--card);border-radius:22px;padding:28px 22px;box-shadow:0 10px 40px rgba(0,0,0,.08)}
+.pub-ico{width:56px;height:56px;border-radius:16px;background:var(--accent);color:#fff;display:grid;place-items:center;margin-bottom:16px}
+.pub-card h1{font-size:26px;margin-bottom:6px}
+.pub-card form{display:grid;gap:14px;margin-top:20px}
+.pub-ok{text-align:center}
+.pub-ok .pub-ico{margin:0 auto 16px;background:var(--ok)}
+
+#print-area{display:none}
+@media print{
+  body>*:not(#print-area){display:none!important}
+  #print-area{display:block}
+  body{background:#fff}
+}
+.etiqueta{width:9cm;border:2px solid #111;border-radius:14px;padding:18px;text-align:center;font-family:system-ui,sans-serif;color:#111;margin:0 auto;page-break-inside:avoid}
+.etiqueta .t1{font-size:30px;font-weight:800;letter-spacing:-.01em}
+.etiqueta .t2{font-size:15px;margin:4px 0 12px}
+.etiqueta img{width:6cm;height:6cm}
+.etiqueta .t3{font-size:12px;margin-top:10px;color:#444}
+</style>
+</head>
+<body>
+<div id="app"><div class="loading">Carregando…</div></div>
+<div id="modal" class="modal" hidden><div class="modal-card" role="dialog" aria-modal="true"><div id="modal-body"></div></div></div>
+<div id="toast"></div>
+<div id="print-area"></div>
+
+<script src="config.js" onerror="void 0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+"use strict";
+const CFG = window.APP_CONFIG || {};
+const DEMO = !(CFG.SUPABASE_URL && CFG.SUPABASE_ANON_KEY);
+
+/* ---------------- utilidades ---------------- */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => Array.from(el.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const isoLocal = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const hoje = () => isoLocal(new Date());
+const parseD = s => new Date(s + 'T00:00:00');
+const addDias = (s, n) => { const d = parseD(s); d.setDate(d.getDate() + n); return isoLocal(d); };
+const diasDesde = s => Math.round((parseD(hoje()) - parseD(s)) / 864e5);
+const fData = s => s ? s.split('-').reverse().join('/') : '—';
+const brl = n => (Number(n) || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+const num = (n, d = 0) => (Number(n) || 0).toLocaleString('pt-BR', {maximumFractionDigits:d});
+const haDias = n => n == null ? 'nunca' : n <= 0 ? 'hoje' : n === 1 ? 'ontem' : `há ${n} dias`;
+const tempoAtras = ts => { const m = Math.round((Date.now() - new Date(ts)) / 6e4); if (m < 1) return 'agora'; if (m < 60) return `há ${m} min`; const h = Math.round(m / 60); if (h < 24) return `há ${h} h`; const d = Math.round(h / 24); return `há ${d} dia${d > 1 ? 's' : ''}`; };
+const slug = s => String(s).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 28) || 'expositor';
+const rnd = n => Math.random().toString(36).slice(2, 2 + n);
+const zap = t => { let d = String(t || '').replace(/\D/g, ''); if (!d) return ''; if (d.length <= 11) d = '55' + d; return 'https://wa.me/' + d; };
+const mapa = e => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent([e.endereco, e.bairro, e.cidade].filter(Boolean).join(', '));
+const lsGet = (k, def) => { try { const v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); } catch (e) { return def; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+const baseUrl = () => location.origin + location.pathname;
+const linkQR = e => baseUrl() + '?e=' + encodeURIComponent(e.codigo);
+const lc = s => String(s || '').trim().toLowerCase();
+let EU = '';      // e-mail de quem está logado
+let VEND = [];    // [{email, nome}] — vendedores (tabela admins)
+const nomeV = email => { const v = VEND.find(x => x.email === lc(email)); return (v && v.nome) || (email ? lc(email).split('@')[0] : '—'); };
+const optsVend = (sel, todos) => (todos ? `<option value="">${esc(todos)}</option>` : '') +
+  VEND.map(v => `<option value="${esc(v.email)}" ${v.email === lc(sel) ? 'selected' : ''}>${esc(v.nome || v.email)}${v.email === EU ? ' (você)' : ''}</option>`).join('');
+const multiVend = () => VEND.length > 1;
+
+function fin(v) {
+  const vend = +v.vendidos || 0, bruto = vend * (+v.preco_unitario || 0);
+  const com = bruto * (+v.comissao_pct || 0) / 100, liq = bruto - com, custo = vend * (+v.custo_unitario || 0);
+  return {vend, bruto, com, liq, custo, lucro: liq - custo, receb: +v.valor_recebido || 0};
+}
+function soma(vs) {
+  const t = {vend:0, bruto:0, com:0, liq:0, custo:0, lucro:0, receb:0};
+  vs.forEach(v => { const f = fin(v); for (const k in t) t[k] += f[k]; });
+  return t;
+}
+/* Estimativa de quanto ainda tem no expositor hoje, pela média de vendas */
+function previsao(e, vsDesc) {
+  const ult = vsDesc[0] || null;
+  const dias = Math.max(diasDesde(ult ? ult.data : e.data_instalacao), 0);
+  const desde = addDias(hoje(), -60);
+  const vendidos60 = vsDesc.filter(v => v.data >= desde).reduce((s, v) => s + (+v.vendidos || 0), 0);
+  const base = Math.min(60, Math.max(diasDesde(e.data_instalacao), 1));
+  const media = vendidos60 / base;
+  const estimado = Math.max(Math.round((+e.estoque_atual || 0) - media * dias), 0);
+  const cap = +e.capacidade || 0;
+  const pct = cap ? estimado / cap : null;
+  const diasAteAcabar = media > 0 ? Math.floor(estimado / media) : null;
+  let nivel = 'ok';
+  if (!e.ativo) nivel = 'off';
+  else if (cap && pct <= 0.25) nivel = 'repor';
+  else if (cap && pct <= 0.5) nivel = 'breve';
+  return {ult, dias, media, estimado, pct, diasAteAcabar, nivel};
+}
+const NIVEL = {repor:'Repor já', breve:'Repor em breve', ok:'Abastecido', off:'Inativo'};
+const chipNivel = n => `<span class="chip n-${n}">${NIVEL[n]}</span>`;
+function agrupar(vs) { const m = {}; vs.forEach(v => (m[v.expositor_id] = m[v.expositor_id] || []).push(v)); return m; }
+
+/* ---------------- dados: Supabase ---------------- */
+function makeSupaApi() {
+  const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+  const ok = ({data, error}) => { if (error) throw new Error(error.message); return data; };
+  return {
+    demo: false,
+    async session() { const {data} = await sb.auth.getSession(); return data.session; },
+    async signIn(email, password) { ok(await sb.auth.signInWithPassword({email, password})); },
+    async signOut() { await sb.auth.signOut(); },
+    async isAdmin() { return !!ok(await sb.rpc('is_admin')); },
+    async me() { const {data} = await sb.auth.getSession(); return lc(data.session && data.session.user && data.session.user.email); },
+    async listVendedores() { return ok(await sb.from('admins').select('email,nome').order('nome')); },
+    async listExpositores() { return ok(await sb.from('expositores').select('*').order('estabelecimento')); },
+    async getExpositor(id) { return ok(await sb.from('expositores').select('*').eq('id', id).single()); },
+    async saveExpositor(o) {
+      const {id, created_at, ...rest} = o;
+      if (id) return ok(await sb.from('expositores').update(rest).eq('id', id).select().single());
+      return ok(await sb.from('expositores').insert(rest).select().single());
+    },
+    async deleteExpositor(id) { ok(await sb.from('expositores').delete().eq('id', id)); },
+    async listVisitas({expositorId, desde} = {}) {
+      let q = sb.from('visitas').select('*').order('data', {ascending:false}).order('created_at', {ascending:false}).limit(5000);
+      if (expositorId) q = q.eq('expositor_id', expositorId);
+      if (desde) q = q.gte('data', desde);
+      return ok(await q);
+    },
+    async addVisita(v) { return ok(await sb.from('visitas').insert(v).select().single()); },
+    async deleteVisita(id) { ok(await sb.from('visitas').delete().eq('id', id)); },
+    async listAvisos(status) {
+      let q = sb.from('avisos').select('*').order('created_at', {ascending:false}).limit(300);
+      if (status) q = q.eq('status', status);
+      return ok(await q);
+    },
+    async setAviso(id, status) { ok(await sb.from('avisos').update({status, atendido_em: status === 'atendido' ? new Date().toISOString() : null}).eq('id', id)); },
+    async countAbertos() { const {count, error} = await sb.from('avisos').select('id', {count:'exact', head:true}).eq('status', 'aberto'); if (error) throw new Error(error.message); return count || 0; },
+    async infoPublica(codigo) { const d = ok(await sb.rpc('info_publica', {p_codigo: codigo})); return (d && d[0]) || null; },
+    async criarAviso(codigo, nome, msg) { return ok(await sb.rpc('criar_aviso', {p_codigo: codigo || null, p_estabelecimento: nome || null, p_mensagem: msg || null})); }
+  };
+}
+
+/* ---------------- dados: modo demonstração (navegador) ---------------- */
+function makeLocalApi() {
+  const KEY = 'expositores_demo_v2';
+  let db = null;
+  const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : rnd(8) + Date.now().toString(36);
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const save = () => lsSet(KEY, db);
+  const load = () => { if (db) return db; db = lsGet(KEY, null); if (!db) { db = seed(); save(); } return db; };
+  const sortV = (a, b) => b.data.localeCompare(a.data) || b.created_at.localeCompare(a.created_at);
+
+  const DEMO_VEND = [{email: 'voce@demo.com', nome: 'Paulo'}, {email: 'lucas@demo.com', nome: 'Lucas'}];
+  function inserirVisita(d, v) {
+    const e = d.expositores.find(x => x.id === v.expositor_id);
+    if (!e) throw new Error('Expositor não encontrado');
+    const r = {id: uid(), expositor_id: e.id, data: v.data || hoje(), estoque_encontrado: +v.estoque_encontrado || 0,
+      perdas: +v.perdas || 0, repostos: +v.repostos || 0, valor_recebido: +v.valor_recebido || 0,
+      observacoes: v.observacoes || null, created_at: v.created_at || new Date().toISOString(), vendedor: lc(v.vendedor) || DEMO_VEND[0].email};
+    r.estoque_anterior = +e.estoque_atual || 0;
+    r.vendidos = Math.max(r.estoque_anterior - r.estoque_encontrado - r.perdas, 0);
+    r.preco_unitario = +e.preco_venda || 0; r.custo_unitario = +e.custo_unitario || 0; r.comissao_pct = +e.comissao_pct || 0;
+    d.visitas.push(r);
+    e.estoque_atual = r.estoque_encontrado + r.repostos;
+    d.avisos.forEach(a => { if (a.expositor_id === e.id && a.status === 'aberto') { a.status = 'atendido'; a.atendido_em = new Date().toISOString(); } });
+    return r;
+  }
+
+  function seed() {
+    const d = {expositores: [], visitas: [], avisos: []};
+    let s = 11; const r = () => (s = (s * 9301 + 49297) % 233280) / 233280;
+    const base = [
+      // estabelecimento, responsável, bairro, endereço, produto, capacidade, preço, custo, comissão, dias instalado, vendas/dia, parar visitas X dias antes de hoje
+      ['Padaria Pão Dourado', 'Márcia', 'Centro', 'Av. Higienópolis, 1200', 'Doces sortidos', 40, 6, 2.4, 20, 63, 3.2, 11],
+      ['Mercearia Boa Vista', 'Jorge', 'Vila Nova', 'Rua Pernambuco, 455', 'Doces sortidos', 30, 6, 2.4, 25, 49, 2.2, 3],
+      ['Conveniência Posto Sul', 'Ana', 'Gleba Palhano', 'Av. Madre Leônia Milito, 800', 'Chaveiros', 25, 15, 6, 30, 42, 1.4, 1],
+      ['Café da Praça', 'Rafael', 'Centro', 'Rua Sergipe, 300', 'Chaveiros', 20, 15, 6, 30, 28, 0.9, 5],
+      ['Lanchonete do Lago', 'Bia', 'Igapó', 'Rua Bento Munhoz da Rocha, 90', 'Doces sortidos', 30, 6, 2.4, 20, 15, 2.6, 2]
+    ];
+    base.forEach((b, i) => {
+      const [est, resp, bairro, end, prod, cap, preco, custo, pct, dias, vpd, parar] = b;
+      const e = {id: uid(), codigo: slug(est) + '-' + (i + 1) + 'd', estabelecimento: est, responsavel: resp, telefone: '',
+        endereco: end, bairro, cidade: 'Londrina', produto: prod, capacidade: cap, estoque_atual: cap, preco_venda: preco,
+        custo_unitario: custo, comissao_pct: pct, data_instalacao: addDias(hoje(), -dias), ativo: true, observacoes: null,
+        vendedor: DEMO_VEND[i === 2 || i === 4 ? 1 : 0].email, created_at: new Date().toISOString()};
+      d.expositores.push(e);
+      const ultima = addDias(hoje(), -parar), datas = [];
+      for (let k = 7; addDias(e.data_instalacao, k) <= ultima; k += 7) datas.push(addDias(e.data_instalacao, k));
+      if (ultima > e.data_instalacao && datas[datas.length - 1] !== ultima) datas.push(ultima);
+      datas.forEach((dia, j) => {
+        const intervalo = diasDesde(j ? datas[j - 1] : e.data_instalacao) - diasDesde(dia);
+        const vend = Math.min(e.estoque_atual, Math.round(vpd * intervalo * (0.6 + r() * 0.8)));
+        const perd = r() < 0.15 && e.estoque_atual - vend > 0 ? 1 : 0;
+        const enc = Math.max(e.estoque_atual - vend - perd, 0);
+        const receber = (e.estoque_atual - enc - perd) * preco * (1 - pct / 100);
+        inserirVisita(d, {expositor_id: e.id, data: dia, estoque_encontrado: enc, perdas: perd, repostos: cap - enc,
+          vendedor: r() < 0.15 ? DEMO_VEND[e.vendedor === DEMO_VEND[0].email ? 1 : 0].email : e.vendedor,
+          valor_recebido: Math.round(receber * (r() < 0.2 ? 0.7 : 1) * 100) / 100, created_at: dia + 'T15:00:00.000Z'});
+      });
+    });
+    const merc = d.expositores[1];
+    d.avisos.push({id: uid(), expositor_id: merc.id, estabelecimento: merc.estabelecimento, mensagem: 'Acabaram os de amendoim',
+      status: 'aberto', created_at: new Date(Date.now() - 2 * 3600e3).toISOString(), atendido_em: null});
+    d.avisos.push({id: uid(), expositor_id: null, estabelecimento: 'Bar do Zé', mensagem: 'Quero um expositor aqui também',
+      status: 'aberto', created_at: new Date(Date.now() - 26 * 3600e3).toISOString(), atendido_em: null});
+    return d;
+  }
+
+  return {
+    demo: true,
+    async session() { return {demo: true}; },
+    async signIn() {}, async signOut() {}, async isAdmin() { return true; },
+    async me() { return DEMO_VEND[0].email; },
+    async listVendedores() { return clone(DEMO_VEND); },
+    async listExpositores() { return clone(load().expositores.slice().sort((a, b) => a.estabelecimento.localeCompare(b.estabelecimento))); },
+    async getExpositor(id) { const e = load().expositores.find(x => x.id === id); if (!e) throw new Error('Expositor não encontrado'); return clone(e); },
+    async saveExpositor(o) {
+      const d = load();
+      if (o.id) { const e = d.expositores.find(x => x.id === o.id); Object.assign(e, o); save(); return clone(e); }
+      const e = Object.assign({id: uid(), created_at: new Date().toISOString()}, o); d.expositores.push(e); save(); return clone(e);
+    },
+    async deleteExpositor(id) {
+      const d = load(); d.expositores = d.expositores.filter(x => x.id !== id); d.visitas = d.visitas.filter(v => v.expositor_id !== id);
+      d.avisos.forEach(a => { if (a.expositor_id === id) a.expositor_id = null; }); save();
+    },
+    async listVisitas({expositorId, desde} = {}) {
+      let v = load().visitas; if (expositorId) v = v.filter(x => x.expositor_id === expositorId); if (desde) v = v.filter(x => x.data >= desde);
+      return clone(v.slice().sort(sortV));
+    },
+    async addVisita(v) { const d = load(); const r = inserirVisita(d, v); save(); return clone(r); },
+    async deleteVisita(id) {
+      const d = load(); const v = d.visitas.find(x => x.id === id); if (!v) return;
+      // (mesma regra do banco: só devolve o estoque se for a última visita)
+      d.visitas = d.visitas.filter(x => x.id !== id);
+      if (!d.visitas.some(x => x.expositor_id === v.expositor_id && x.created_at > v.created_at)) {
+        const e = d.expositores.find(x => x.id === v.expositor_id); if (e) e.estoque_atual = v.estoque_anterior;
+      }
+      save();
+    },
+    async listAvisos(status) { let a = load().avisos; if (status) a = a.filter(x => x.status === status); return clone(a.slice().sort((x, y) => y.created_at.localeCompare(x.created_at))); },
+    async setAviso(id, status) { const a = load().avisos.find(x => x.id === id); if (a) { a.status = status; a.atendido_em = status === 'atendido' ? new Date().toISOString() : null; save(); } },
+    async countAbertos() { return load().avisos.filter(a => a.status === 'aberto').length; },
+    async infoPublica(c) { const e = load().expositores.find(x => x.codigo === c && x.ativo); return e ? {estabelecimento: e.estabelecimento, produto: e.produto} : null; },
+    async criarAviso(codigo, nome, msg) {
+      const d = load(); nome = (nome || '').trim();
+      let e = codigo ? d.expositores.find(x => x.codigo === codigo) : null;
+      if (!e && nome) e = d.expositores.find(x => x.estabelecimento.toLowerCase() === nome.toLowerCase());
+      const n = nome || (e && e.estabelecimento); if (!n) throw new Error('Informe o nome do estabelecimento');
+      const lim = Date.now() - 3 * 3600e3;
+      if (d.avisos.some(a => a.status === 'aberto' && new Date(a.created_at) > lim && ((e && a.expositor_id === e.id) || a.estabelecimento.toLowerCase() === n.toLowerCase()))) return 'ja_existe';
+      d.avisos.push({id: uid(), expositor_id: e ? e.id : null, estabelecimento: n.slice(0, 120), mensagem: (msg || '').trim() || null, status: 'aberto', created_at: new Date().toISOString(), atendido_em: null});
+      save(); return 'ok';
+    },
+    reset() { try { localStorage.removeItem(KEY); } catch (e) {} db = null; }
+  };
+}
+
+let api;
+try { api = DEMO ? makeLocalApi() : makeSupaApi(); }
+catch (err) { document.getElementById('app').innerHTML = `<div class="pub"><div class="erro">Não foi possível conectar ao Supabase: ${esc(err.message)}</div></div>`; return; }
+
+/* ---------------- UI: toast e modal ---------------- */
+function toast(msg) {
+  const t = document.createElement('div'); t.textContent = msg; $('#toast').appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+function abrirModal(titulo, html) {
+  $('#modal-body').innerHTML = `<div class="modal-head"><h2>${esc(titulo)}</h2><button class="icon-btn" data-close aria-label="Fechar">✕</button></div>${html}`;
+  $('#modal').hidden = false;
+  const f = $('#modal-body [autofocus]') || $('#modal-body input:not([type=hidden]):not([readonly]),#modal-body select');
+  if (f && window.innerWidth > 640) f.focus();
+}
+function fecharModal() { $('#modal').hidden = true; $('#modal-body').innerHTML = ''; }
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal' || e.target.closest('[data-close]')) fecharModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#modal').hidden) fecharModal(); });
+
+let charts = [];
+function limparCharts() { charts.forEach(c => c.destroy()); charts = []; }
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------------- ícones ---------------- */
+const IC = {
+  painel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>',
+  exp: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16"/></svg>',
+  aviso: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg>',
+  sair: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>',
+  caixa: '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/></svg>',
+  check: '<svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+};
+
+/* ---------------- estrutura ---------------- */
+function shell(pagina) {
+  if (!$('#main')) {
+    $('#app').innerHTML = `
+      ${DEMO ? '<div class="demo-bar">Modo demonstração: dados de exemplo salvos só neste navegador. <button id="reset-demo">Zerar dados</button></div>' : ''}
+      <header class="top"><div class="top-in">
+        <a class="brand" href="#/painel"><i>E</i>Expositores</a>
+        <nav class="tabs">
+          <a href="#/painel" data-p="painel">${IC.painel}<span>Painel</span></a>
+          <a href="#/expositores" data-p="expositores">${IC.exp}<span>Expositores</span></a>
+          <a href="#/avisos" data-p="avisos">${IC.aviso}<span>Avisos</span><span class="badge" id="badge" hidden>0</span></a>
+          ${DEMO ? '' : `<button id="sair">${IC.sair}<span>Sair</span></button>`}
+        </nav>
+      </div></header>
+      <main id="main"></main>`;
+    const r = $('#reset-demo'); if (r) r.onclick = () => { if (confirm('Apagar tudo e recriar os dados de exemplo?')) { api.reset(); route(); } };
+    const s = $('#sair'); if (s) s.onclick = async () => { await api.signOut(); location.hash = ''; iniciar(); };
+  }
+  const p = pagina === 'expositor' ? 'expositores' : pagina;
+  $$('nav.tabs a').forEach(a => a.classList.toggle('on', a.dataset.p === p));
+}
+
+let ultimoCount = null;
+async function atualizarBadge() {
+  try {
+    const n = await api.countAbertos();
+    const b = $('#badge'); if (b) { b.textContent = n; b.hidden = !n; }
+    document.title = (n ? `(${n}) ` : '') + 'Expositores';
+    if (ultimoCount !== null && n > ultimoCount) toast('Novo aviso de reposição!');
+    ultimoCount = n;
+  } catch (e) {}
+}
+
+async function route() {
+  limparCharts();
+  const h = location.hash.replace(/^#\/?/, '') || 'painel';
+  const [pagina, arg] = h.split('/');
+  shell(pagina);
+  const main = $('#main');
+  main.innerHTML = '<div class="loading">Carregando…</div>';
+  try {
+    if (pagina === 'expositores') await pgExpositores(main);
+    else if (pagina === 'expositor') await pgExpositor(main, decodeURIComponent(arg || ''));
+    else if (pagina === 'avisos') await pgAvisos(main);
+    else await pgPainel(main);
+  } catch (err) {
+    console.error(err);
+    main.innerHTML = `<div class="erro">Algo deu errado: ${esc(err.message)}</div>`;
+  }
+  atualizarBadge();
+  window.scrollTo(0, 0);
+}
+
+/* ---------------- PAINEL (análises) ---------------- */
+async function pgPainel(main) {
+  const periodo = lsGet('periodo', 30);
+  let fv = lsGet('vendPainel', ''); if (fv && !VEND.some(v => v.email === fv)) fv = '';
+  const [expsAll, visitasAll, abertosAll] = await Promise.all([api.listExpositores(), api.listVisitas(), api.listAvisos('aberto')]);
+  const desde = periodo ? addDias(hoje(), -periodo + 1) : null;
+  // filtro de vendedor = carteira (expositores do vendedor)
+  const exps = fv ? expsAll.filter(e => lc(e.vendedor) === fv) : expsAll;
+  const idsF = new Set(exps.map(e => e.id));
+  const visitas = fv ? visitasAll.filter(v => idsF.has(v.expositor_id)) : visitasAll;
+  const abertos = fv ? abertosAll.filter(a => idsF.has(a.expositor_id)) : abertosAll;
+  // resumo por vendedor (sempre com todos)
+  const vpAll = desde ? visitasAll.filter(v => v.data >= desde) : visitasAll;
+  const vendDe = Object.fromEntries(expsAll.map(e => [e.id, lc(e.vendedor)]));
+  const porVend = VEND.map(vd => {
+    const cart = vpAll.filter(v => vendDe[v.expositor_id] === vd.email), feitas = vpAll.filter(v => lc(v.vendedor) === vd.email);
+    return {vd, nExp: expsAll.filter(e => e.ativo && lc(e.vendedor) === vd.email).length, s: soma(cart), nVis: feitas.length,
+      receb: feitas.reduce((a, v) => a + (+v.valor_recebido || 0), 0)};
+  });
+  const vp = desde ? visitas.filter(v => v.data >= desde) : visitas;
+  const t = soma(vp);
+  const porExpAll = agrupar(visitas), porExpP = agrupar(vp);
+  const avisoExp = new Set(abertos.map(a => a.expositor_id).filter(Boolean));
+  const ativos = exps.filter(e => e.ativo);
+
+  // rota de reposição
+  const rota = ativos.map(e => ({e, p: previsao(e, porExpAll[e.id] || []), aviso: avisoExp.has(e.id)}))
+    .filter(x => x.aviso || x.p.nivel !== 'ok')
+    .sort((a, b) => (b.aviso - a.aviso) || ((a.p.pct ?? 1) - (b.p.pct ?? 1)));
+
+  // ranking
+  const rank = exps.map(e => {
+    const s = soma(porExpP[e.id] || []);
+    const diasAtivo = Math.max(1, Math.min(periodo || 1e9, diasDesde(e.data_instalacao) + 1));
+    const ult = (porExpAll[e.id] || [])[0];
+    return {e, s, porDia: s.vend / diasAtivo, ult};
+  }).filter(x => x.e.ativo || x.s.vend).sort((a, b) => b.s.bruto - a.s.bruto);
+
+  const esperado = t.liq;
+  main.innerHTML = `
+    <div class="page-head"><h1>Painel</h1><div class="sp"></div>
+      ${multiVend() ? `<select id="f-vend" style="width:auto">${optsVend(fv, 'Todos os vendedores')}</select>` : ''}
+      <div class="seg" id="periodo">${[[7,'7 dias'],[30,'30 dias'],[90,'90 dias'],[0,'Tudo']].map(([v,l]) => `<button data-v="${v}" class="${v === periodo ? 'on' : ''}">${l}</button>`).join('')}</div>
+    </div>
+    <div class="stack">
+      <div class="kpis k6">
+        <div class="kpi"><span>Unidades vendidas</span><b>${num(t.vend)}</b></div>
+        <div class="kpi"><span>Faturamento bruto</span><b>${brl(t.bruto)}</b></div>
+        <div class="kpi"><span>Comissão dos locais</span><b>${brl(t.com)}</b></div>
+        <div class="kpi hl"><span>Lucro estimado</span><b>${brl(t.lucro)}</b></div>
+        <div class="kpi"><span>Recebido</span><b>${brl(t.receb)}</b><span>${esperado - t.receb > 0.5 ? 'faltam ' + brl(esperado - t.receb) : 'tudo certo'}</span></div>
+        <div class="kpi"><span>Expositores ativos</span><b>${ativos.length}</b><span>${abertos.length} aviso${abertos.length === 1 ? '' : 's'} aberto${abertos.length === 1 ? '' : 's'}</span></div>
+      </div>
+      <section class="card"><h2>Faturamento no período</h2><div class="chart-box"><canvas id="ch-tempo"></canvas></div></section>
+      <div class="grid2">
+        <section class="card"><h2>Rota de reposição sugerida</h2>
+          ${rota.length ? `<div class="list">${rota.map((x, i) => `
+            <a class="rota-item" href="#/expositor/${x.e.id}">
+              <span class="num-dot">${i + 1}</span>
+              <div class="grow"><div><b>${esc(x.e.estabelecimento)}</b></div>
+                <div class="small muted">${esc(x.e.bairro || '')} · ~${x.p.estimado}/${x.e.capacidade} un. · visita ${haDias(x.p.ult ? diasDesde(x.p.ult.data) : null)}${multiVend() && !fv ? ' · ' + esc(nomeV(x.e.vendedor)) : ''}</div></div>
+              ${x.aviso ? '<span class="chip n-aviso">Pediu</span>' : chipNivel(x.p.nivel)}
+            </a>`).join('')}</div>` : '<div class="empty">Tudo abastecido por enquanto.</div>'}
+        </section>
+        <section class="card"><h2>Ranking dos expositores</h2>
+          ${rank.length ? `<div class="tbl-wrap"><table><thead><tr><th>Expositor</th><th class="r">Vendidos</th><th class="r">Faturamento</th><th class="r">Lucro</th><th class="r">Por dia</th><th class="r">Última visita</th></tr></thead><tbody>
+            ${rank.map(x => `<tr class="link" data-id="${x.e.id}"><td><b>${esc(x.e.estabelecimento)}</b></td><td class="r">${num(x.s.vend)}</td><td class="r">${brl(x.s.bruto)}</td><td class="r">${brl(x.s.lucro)}</td><td class="r">${num(x.porDia, 1)}</td><td class="r">${x.ult ? fData(x.ult.data) : '—'}</td></tr>`).join('')}
+          </tbody></table></div>` : '<div class="empty">Cadastre um expositor e registre visitas para ver as vendas aqui.</div>'}
+        </section>
+      </div>
+      ${multiVend() ? `<section class="card"><h2>Por vendedor</h2>
+        <div class="tbl-wrap"><table><thead><tr><th>Vendedor</th><th class="r">Expositores</th><th class="r">Vendidos</th><th class="r">Faturamento</th><th class="r">Lucro</th><th class="r">Visitas feitas</th><th class="r">Recebeu</th></tr></thead><tbody>
+          ${porVend.map(x => `<tr><td><b>${esc(x.vd.nome || x.vd.email)}</b>${x.vd.email === EU ? ' <span class="muted small">(você)</span>' : ''}</td><td class="r">${x.nExp}</td><td class="r">${num(x.s.vend)}</td><td class="r">${brl(x.s.bruto)}</td><td class="r">${brl(x.s.lucro)}</td><td class="r">${x.nVis}</td><td class="r">${brl(x.receb)}</td></tr>`).join('')}
+        </tbody></table></div>
+        <p class="small muted" style="margin:10px 0 0">Expositores, vendidos, faturamento e lucro: da carteira de cada um. Visitas feitas e Recebeu: por quem registrou a visita (ou seja, com quem está o dinheiro).</p>
+      </section>` : ''}
+      <section class="card"><h2>Vendas por expositor</h2><div class="chart-box" style="height:${Math.max(160, rank.length * 34 + 40)}px"><canvas id="ch-exp"></canvas></div></section>
+    </div>`;
+
+  $$('#periodo button').forEach(b => b.onclick = () => { lsSet('periodo', +b.dataset.v); route(); });
+  const fvSel = $('#f-vend'); if (fvSel) fvSel.onchange = () => { lsSet('vendPainel', fvSel.value); route(); };
+  $$('tr.link').forEach(tr => tr.onclick = () => location.hash = '#/expositor/' + tr.dataset.id);
+
+  if (!window.Chart) return;
+  const acc = cssVar('--accent'), muted = cssVar('--muted'), line = cssVar('--line');
+  Chart.defaults.color = muted; Chart.defaults.font.family = 'system-ui,sans-serif';
+  // séries no tempo
+  const ini = desde || (visitas.length ? visitas[visitas.length - 1].data : hoje());
+  const span = diasDesde(ini);
+  const porMes = span > 120;
+  const chave = s => { if (porMes) return s.slice(0, 7); const d = parseD(s); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return isoLocal(d); };
+  const buckets = []; let cur = chave(ini);
+  while (cur <= chave(hoje())) { buckets.push(cur); if (porMes) { const [y, m] = cur.split('-').map(Number); cur = m === 12 ? `${y + 1}-01` : `${y}-${pad(m + 1)}`; } else cur = addDias(cur, 7); }
+  const valB = {}, valL = {};
+  vp.forEach(v => { const k = chave(v.data), f = fin(v); valB[k] = (valB[k] || 0) + f.bruto; valL[k] = (valL[k] || 0) + f.lucro; });
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const rot = k => porMes ? meses[+k.slice(5, 7) - 1] + '/' + k.slice(2, 4) : k.slice(8, 10) + '/' + k.slice(5, 7);
+  charts.push(new Chart($('#ch-tempo'), {
+    type: 'bar',
+    data: {labels: buckets.map(rot), datasets: [
+      {label: 'Faturamento', data: buckets.map(k => valB[k] || 0), backgroundColor: acc, borderRadius: 5, maxBarThickness: 38},
+      {label: 'Lucro', data: buckets.map(k => valL[k] || 0), backgroundColor: cssVar('--ok'), borderRadius: 5, maxBarThickness: 38}
+    ]},
+    options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {position: 'bottom', labels: {boxWidth: 10}}, tooltip: {callbacks: {label: c => c.dataset.label + ': ' + brl(c.raw)}}},
+      scales: {x: {grid: {display: false}, title: {display: true, text: porMes ? 'por mês' : 'semana iniciada em'}}, y: {grid: {color: line}, ticks: {callback: v => 'R$ ' + num(v)}}}}
+  }));
+  if (rank.length) charts.push(new Chart($('#ch-exp'), {
+    type: 'bar',
+    data: {labels: rank.map(x => x.e.estabelecimento), datasets: [{label: 'Unidades vendidas', data: rank.map(x => x.s.vend), backgroundColor: acc, borderRadius: 5, maxBarThickness: 22}]},
+    options: {indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}},
+      scales: {x: {grid: {color: line}, ticks: {precision: 0}}, y: {grid: {display: false}}}}
+  }));
+}
+
+/* ---------------- LISTA DE EXPOSITORES ---------------- */
+async function pgExpositores(main) {
+  const [exps, visitas, abertos] = await Promise.all([api.listExpositores(), api.listVisitas(), api.listAvisos('aberto')]);
+  const porExp = agrupar(visitas);
+  const avisoExp = new Set(abertos.map(a => a.expositor_id));
+  const bairros = [...new Set(exps.map(e => e.bairro).filter(Boolean))].sort();
+  const filtro = Object.assign({q: '', st: 'ativos', b: '', v: ''}, lsGet('filtroExp', {}));
+
+  main.innerHTML = `
+    <div class="page-head"><h1>Expositores</h1><span class="muted">${exps.length}</span><div class="sp"></div>
+      <button class="btn primary" id="novo">+ Novo expositor</button></div>
+    <div class="toolbar">
+      <input id="f-q" placeholder="Buscar por nome, bairro, produto…" value="${esc(filtro.q)}">
+      <select id="f-st"><option value="ativos">Ativos</option><option value="todos">Todos</option><option value="inativos">Inativos</option><option value="repor">Precisam repor</option></select>
+      <select id="f-b"><option value="">Todos os bairros</option>${bairros.map(b => `<option>${esc(b)}</option>`).join('')}</select>
+      ${multiVend() ? `<select id="f-v">${optsVend(filtro.v, 'Todos os vendedores')}</select>` : ''}
+    </div>
+    <div id="lista"></div>`;
+  $('#f-st').value = filtro.st; $('#f-b').value = filtro.b;
+
+  const desenhar = () => {
+    const q = $('#f-q').value.trim().toLowerCase(), st = $('#f-st').value, b = $('#f-b').value, vv = $('#f-v') ? $('#f-v').value : '';
+    lsSet('filtroExp', {q, st, b, v: vv});
+    const itens = exps.map(e => ({e, p: previsao(e, porExp[e.id] || [])})).filter(({e, p}) =>
+      (!q || [e.estabelecimento, e.bairro, e.produto, e.endereco, e.responsavel, nomeV(e.vendedor)].join(' ').toLowerCase().includes(q)) &&
+      (!b || e.bairro === b) && (!vv || lc(e.vendedor) === vv) &&
+      (st === 'todos' || (st === 'ativos' && e.ativo) || (st === 'inativos' && !e.ativo) || (st === 'repor' && e.ativo && (p.nivel !== 'ok' || avisoExp.has(e.id)))));
+    $('#lista').innerHTML = itens.length ? `<div class="exp-grid">${itens.map(({e, p}) => `
+      <a class="exp-card" href="#/expositor/${e.id}">
+        <div class="row"><strong>${esc(e.estabelecimento)}</strong>${avisoExp.has(e.id) ? '<span class="chip n-aviso">Pediu reposição</span>' : chipNivel(p.nivel)}</div>
+        <div class="small muted">${esc([e.bairro, e.produto, multiVend() ? nomeV(e.vendedor) : ''].filter(Boolean).join(' · ') || '—')}</div>
+        <div class="bar ${p.nivel}"><span style="width:${e.capacidade ? Math.round(Math.min(p.pct, 1) * 100) : 0}%"></span></div>
+        <div class="row small muted"><span>~${p.estimado}${e.capacidade ? '/' + e.capacidade : ''} un. (estimado)</span><span>Visita ${haDias(p.ult ? diasDesde(p.ult.data) : null)}</span></div>
+      </a>`).join('')}</div>`
+      : `<div class="card empty">${exps.length ? 'Nenhum expositor com esses filtros.' : 'Nenhum expositor ainda. Clique em <b>+ Novo expositor</b> para cadastrar o primeiro.'}</div>`;
+  };
+  ['#f-q', '#f-st', '#f-b', '#f-v'].forEach(s => $(s) && $(s).addEventListener('input', desenhar));
+  $('#novo').onclick = () => formExpositor();
+  desenhar();
+}
+
+/* ---------------- FORMULÁRIO DO EXPOSITOR ---------------- */
+function formExpositor(e) {
+  const novo = !e; e = e || {cidade: 'Londrina', data_instalacao: hoje(), ativo: true, comissao_pct: 0};
+  const v = k => esc(e[k] ?? '');
+  abrirModal(novo ? 'Novo expositor' : 'Editar expositor', `
+    <form class="form" id="f-exp">
+      <h3>Local</h3>
+      <label class="full">Nome do estabelecimento *<input name="estabelecimento" required maxlength="120" value="${v('estabelecimento')}"></label>
+      <label class="full">Vendedor responsável<select name="vendedor">${optsVend(e.vendedor || EU)}</select></label>
+      <label>Responsável no local<input name="responsavel" value="${v('responsavel')}"></label>
+      <label>WhatsApp / telefone<input name="telefone" inputmode="tel" value="${v('telefone')}" placeholder="(43) 9…"></label>
+      <label class="full">Endereço<input name="endereco" value="${v('endereco')}"></label>
+      <label>Bairro<input name="bairro" value="${v('bairro')}"></label>
+      <label>Cidade<input name="cidade" value="${v('cidade')}"></label>
+      <h3>Expositor e produto</h3>
+      <label class="full">Produto<input name="produto" value="${v('produto')}" placeholder="O que vai no expositor"></label>
+      <label>Capacidade (unidades)<input name="capacidade" type="number" min="0" step="1" value="${v('capacidade')}"></label>
+      <label>${novo ? 'Quantidade colocada' : 'Estoque atual (ajuste)'}<input name="estoque_atual" type="number" min="0" step="1" value="${v('estoque_atual')}">
+        <div class="hint">${novo ? 'Quantas unidades você deixou na instalação' : 'Normalmente se atualiza sozinho nas visitas'}</div></label>
+      <label>Preço de venda (un.)<input name="preco_venda" type="number" min="0" step="0.01" value="${v('preco_venda')}"></label>
+      <label>Seu custo (un.)<input name="custo_unitario" type="number" min="0" step="0.01" value="${v('custo_unitario')}"></label>
+      <label>Comissão do local (%)<input name="comissao_pct" type="number" min="0" max="100" step="0.1" value="${v('comissao_pct')}"></label>
+      <label>Data de instalação<input name="data_instalacao" type="date" value="${v('data_instalacao')}"></label>
+      <label class="full">Observações<textarea name="observacoes" rows="2">${v('observacoes')}</textarea></label>
+      <label class="check full"><input type="checkbox" name="ativo" ${e.ativo ? 'checked' : ''}> Expositor ativo</label>
+      ${novo ? '' : `<div class="full hint">Código do QR: <b>${v('codigo')}</b> (não muda, para o QR impresso continuar valendo)</div>`}
+    </form>
+    <div class="modal-foot"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="salvar">Salvar</button></div>`);
+  $('#salvar').onclick = async () => {
+    const f = $('#f-exp'); if (!f.reportValidity()) return;
+    const fd = new FormData(f), n = k => Number(String(fd.get(k) || '0').replace(',', '.')) || 0, s = k => (fd.get(k) || '').toString().trim() || null;
+    const o = {
+      estabelecimento: s('estabelecimento'), responsavel: s('responsavel'), telefone: s('telefone'), endereco: s('endereco'),
+      bairro: s('bairro'), cidade: s('cidade'), produto: s('produto'), capacidade: Math.round(n('capacidade')),
+      estoque_atual: Math.round(n('estoque_atual')), preco_venda: n('preco_venda'), custo_unitario: n('custo_unitario'),
+      comissao_pct: n('comissao_pct'), data_instalacao: s('data_instalacao') || hoje(), observacoes: s('observacoes'), ativo: !!fd.get('ativo'),
+      vendedor: lc(fd.get('vendedor')) || EU || null
+    };
+    if (novo) o.codigo = slug(o.estabelecimento) + '-' + rnd(4); else o.id = e.id;
+    $('#salvar').disabled = true;
+    try { const r = await api.saveExpositor(o); fecharModal(); toast(novo ? 'Expositor cadastrado' : 'Alterações salvas'); location.hash = '#/expositor/' + r.id; route(); }
+    catch (err) { toast('Erro: ' + err.message); $('#salvar').disabled = false; }
+  };
+}
+
+/* ---------------- DETALHE DO EXPOSITOR ---------------- */
+async function pgExpositor(main, id) {
+  const [e, vs, abertos] = await Promise.all([api.getExpositor(id), api.listVisitas({expositorId: id}), api.listAvisos('aberto')]);
+  const p = previsao(e, vs), t = soma(vs);
+  const meus = abertos.filter(a => a.expositor_id === e.id);
+  const semanas = Math.max(diasDesde(e.data_instalacao) / 7, 1);
+  const w = zap(e.telefone);
+
+  main.innerHTML = `
+    <a class="back" href="#/expositores">← Expositores</a>
+    <div class="page-head" style="margin-bottom:6px"><h1>${esc(e.estabelecimento)}</h1>${chipNivel(p.nivel)}</div>
+    <div class="muted" style="margin-bottom:16px">${esc([e.endereco, e.bairro, e.cidade].filter(Boolean).join(' · ') || 'Sem endereço')}</div>
+    <div class="btns" style="margin-bottom:16px">
+      <button class="btn primary" id="b-visita">Registrar visita</button>
+      <button class="btn" id="b-qr">QR Code</button>
+      <button class="btn" id="b-edit">Editar</button>
+      ${w ? `<a class="btn" href="${w}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+      ${e.endereco ? `<a class="btn" href="${mapa(e)}" target="_blank" rel="noopener">Mapa</a>` : ''}
+    </div>
+    <div class="stack">
+      ${meus.length ? `<div class="alert"><div class="grow"><b>Pediu reposição ${tempoAtras(meus[0].created_at)}</b>${meus[0].mensagem ? `<div class="small">“${esc(meus[0].mensagem)}”</div>` : ''}</div><span class="small muted">Some sozinho quando você registrar a visita</span></div>` : ''}
+      <div class="kpis">
+        <div class="kpi hl"><span>Estoque estimado hoje</span><b>~${p.estimado}${e.capacidade ? ' / ' + e.capacidade : ''}</b><span>${p.diasAteAcabar != null ? (p.diasAteAcabar <= 0 ? 'deve estar vazio' : 'acaba em ~' + p.diasAteAcabar + ' dias') : 'sem histórico'}</span></div>
+        <div class="kpi"><span>Vendidos no total</span><b>${num(t.vend)}</b><span>${num(t.vend / semanas, 1)} por semana</span></div>
+        <div class="kpi"><span>Faturamento total</span><b>${brl(t.bruto)}</b><span>lucro ${brl(t.lucro)}</span></div>
+        <div class="kpi"><span>Recebido</span><b>${brl(t.receb)}</b><span>${t.liq - t.receb > 0.5 ? 'faltam ' + brl(t.liq - t.receb) : 'em dia'}</span></div>
+        <div class="kpi"><span>Última visita</span><b>${p.ult ? fData(p.ult.data) : '—'}</b><span>${haDias(p.ult ? diasDesde(p.ult.data) : null)}</span></div>
+        <div class="kpi"><span>Instalado em</span><b>${fData(e.data_instalacao)}</b><span>${haDias(diasDesde(e.data_instalacao))}</span></div>
+      </div>
+      <section class="card"><h2>Informações</h2><div class="info">
+        <div><span>Vendedor</span><b>${esc(nomeV(e.vendedor))}</b></div>
+        <div><span>Responsável no local</span><b>${esc(e.responsavel || '—')}</b></div>
+        <div><span>Telefone</span><b>${esc(e.telefone || '—')}</b></div>
+        <div><span>Produto</span><b>${esc(e.produto || '—')}</b></div>
+        <div><span>Capacidade</span><b>${num(e.capacidade)} un.</b></div>
+        <div><span>Estoque após última visita</span><b>${num(e.estoque_atual)} un.</b></div>
+        <div><span>Preço de venda</span><b>${brl(e.preco_venda)}</b></div>
+        <div><span>Seu custo</span><b>${brl(e.custo_unitario)}</b></div>
+        <div><span>Comissão do local</span><b>${num(e.comissao_pct, 1)}%</b></div>
+        <div><span>Código do QR</span><b>${esc(e.codigo)}</b></div>
+        <div><span>Situação</span><b>${e.ativo ? 'Ativo' : 'Inativo'}</b></div>
+        ${e.observacoes ? `<div style="grid-column:1/-1"><span>Observações</span><b>${esc(e.observacoes)}</b></div>` : ''}
+      </div></section>
+      <section class="card"><h2>Histórico de visitas</h2>
+        ${vs.length ? `<div class="tbl-wrap"><table><thead><tr><th>Data</th><th class="r">Tinha</th><th class="r">Encontrou</th><th class="r">Perdas</th><th class="r">Vendeu</th><th class="r">Repôs</th><th class="r">Faturou</th><th class="r">Recebido</th><th>Por</th><th></th></tr></thead><tbody>
+          ${vs.map((v, i) => `<tr title="${esc(v.observacoes || '')}"><td>${fData(v.data)}${v.observacoes ? ' •' : ''}</td><td class="r">${v.estoque_anterior}</td><td class="r">${v.estoque_encontrado}</td><td class="r">${v.perdas || ''}</td><td class="r"><b>${v.vendidos}</b></td><td class="r">${v.repostos}</td><td class="r">${brl(fin(v).bruto)}</td><td class="r">${brl(v.valor_recebido)}</td><td>${esc(nomeV(v.vendedor))}</td><td>${i === 0 ? `<button class="icon-btn" data-del="${v.id}" title="Apagar esta visita">✕</button>` : ''}</td></tr>`).join('')}
+        </tbody></table></div>` : '<div class="empty">Nenhuma visita registrada ainda.</div>'}
+      </section>
+      <div><button class="btn danger sm" id="b-del">Excluir expositor</button></div>
+    </div>`;
+
+  $('#b-visita').onclick = () => formVisita(e);
+  $('#b-qr').onclick = () => modalQR(e);
+  $('#b-edit').onclick = () => formExpositor(e);
+  const d = $('[data-del]');
+  if (d) d.onclick = async () => { if (!confirm('Apagar a última visita? O estoque volta ao valor anterior.')) return; await api.deleteVisita(d.dataset.del); toast('Visita apagada'); route(); };
+  $('#b-del').onclick = async () => {
+    if (!confirm(`Excluir "${e.estabelecimento}" e todo o histórico de visitas? Isso não pode ser desfeito.\n\nDica: se ele só saiu do ar, prefira desmarcar "Expositor ativo".`)) return;
+    await api.deleteExpositor(e.id); toast('Expositor excluído'); location.hash = '#/expositores';
+  };
+  if (sessionStorage.getItem('abrirVisita') === e.id) { sessionStorage.removeItem('abrirVisita'); formVisita(e); }
+}
+
+/* ---------------- REGISTRAR VISITA ---------------- */
+function formVisita(e) {
+  const ant = +e.estoque_atual || 0;
+  abrirModal('Registrar visita — ' + e.estabelecimento, `
+    <form class="form" id="f-vis">
+      ${multiVend() ? `<label class="full">Quem fez a visita<select name="vendedor">${optsVend(EU)}</select></label>` : ''}
+      <label>Data<input name="data" type="date" value="${hoje()}" max="${hoje()}"></label>
+      <label>Tinha deixado<input value="${ant}" readonly><div class="hint">após a última visita</div></label>
+      <label>Encontrou no expositor *<input name="estoque_encontrado" type="number" min="0" step="1" required inputmode="numeric" autofocus></label>
+      <label>Perdas<input name="perdas" type="number" min="0" step="1" value="0" inputmode="numeric"><div class="hint">avariados, vencidos, sumidos</div></label>
+      <label>Repôs (unidades)<input name="repostos" type="number" min="0" step="1" value="0" inputmode="numeric">
+        ${e.capacidade ? `<div class="hint"><a href="#" id="completar">Completar até ${e.capacidade}</a></div>` : ''}</label>
+      <label>Valor recebido (R$)<input name="valor_recebido" type="number" min="0" step="0.01" inputmode="decimal"></label>
+      <div class="resumo" id="resumo"></div>
+      <label class="full">Observações<textarea name="observacoes" rows="2"></textarea></label>
+    </form>
+    <div class="modal-foot"><button class="btn" data-close>Cancelar</button><button class="btn primary" id="salvar-v">Salvar visita</button></div>`);
+  const f = $('#f-vis'), g = k => Number(String(f.elements[k].value || '0').replace(',', '.')) || 0;
+  let recebidoMexido = false;
+  f.elements.valor_recebido.addEventListener('input', () => recebidoMexido = true);
+  const calc = () => {
+    if (f.elements.estoque_encontrado.value === '') { $('#resumo').innerHTML = '<span class="muted">Preencha quanto encontrou para calcular as vendas.</span><b></b>'; if (!recebidoMexido) f.elements.valor_recebido.value = ''; return; }
+    const vend = Math.max(ant - g('estoque_encontrado') - g('perdas'), 0);
+    const bruto = vend * (+e.preco_venda || 0), com = bruto * (+e.comissao_pct || 0) / 100;
+    if (!recebidoMexido) f.elements.valor_recebido.value = (bruto - com).toFixed(2);
+    const depois = g('estoque_encontrado') + g('repostos');
+    $('#resumo').innerHTML = `<span>Vendeu</span><b>${vend} un.</b><span>Faturamento</span><b>${brl(bruto)}</b><span>Comissão do local (${num(e.comissao_pct, 1)}%)</span><b>− ${brl(com)}</b><span>A receber do local</span><b>${brl(bruto - com)}</b><span>Fica no expositor</span><b>${depois}${e.capacidade ? ' / ' + e.capacidade : ''} un.</b>`;
+  };
+  ['estoque_encontrado', 'perdas', 'repostos'].forEach(k => f.elements[k].addEventListener('input', calc));
+  const c = $('#completar'); if (c) c.onclick = ev => { ev.preventDefault(); f.elements.repostos.value = Math.max((+e.capacidade || 0) - g('estoque_encontrado'), 0); calc(); };
+  calc();
+  $('#salvar-v').onclick = async () => {
+    if (!f.reportValidity()) return;
+    if (g('estoque_encontrado') + g('perdas') > ant && !confirm(`Encontrado + perdas (${g('estoque_encontrado') + g('perdas')}) é maior do que tinha (${ant}). Salvar assim mesmo? (as vendas ficam 0)`)) return;
+    $('#salvar-v').disabled = true;
+    try {
+      await api.addVisita({expositor_id: e.id, data: f.elements.data.value || hoje(), estoque_encontrado: Math.round(g('estoque_encontrado')),
+        perdas: Math.round(g('perdas')), repostos: Math.round(g('repostos')), valor_recebido: g('valor_recebido'),
+        observacoes: f.elements.observacoes.value.trim() || null, vendedor: lc(f.elements.vendedor ? f.elements.vendedor.value : EU) || null});
+      fecharModal(); toast('Visita registrada'); route();
+    } catch (err) { toast('Erro: ' + err.message); $('#salvar-v').disabled = false; }
+  };
+}
+
+/* ---------------- QR CODE ---------------- */
+function modalQR(e) {
+  const url = linkQR(e);
+  abrirModal('QR Code de reposição', `
+    <div class="qr-box"><div id="qr"></div></div>
+    <div class="qr-url">${esc(url)}</div>
+    <div class="btns" style="justify-content:center">
+      <button class="btn primary" id="q-print">Imprimir etiqueta</button>
+      <a class="btn" id="q-png" download="qr-${esc(e.codigo)}.png">Baixar imagem</a>
+      <button class="btn" id="q-copy">Copiar link</button>
+      <a class="btn" href="${esc(url)}" target="_blank" rel="noopener">Testar</a>
+    </div>
+    <p class="small muted" style="text-align:center;margin-bottom:0">Cole a etiqueta no expositor. Quem escanear avisa você na hora, sem precisar de login.</p>`);
+  let dataUrl = '';
+  if (window.QRCode) {
+    new QRCode($('#qr'), {text: url, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M});
+    const cv = $('#qr canvas'); dataUrl = cv ? cv.toDataURL('image/png') : '';
+    $('#q-png').href = dataUrl;
+  } else $('#qr').textContent = 'Não foi possível carregar o gerador de QR (sem internet?).';
+  $('#q-copy').onclick = async () => { try { await navigator.clipboard.writeText(url); toast('Link copiado'); } catch (err) { prompt('Copie o link:', url); } };
+  $('#q-print').onclick = () => {
+    $('#print-area').innerHTML = `<div class="etiqueta"><div class="t1">ACABOU?</div><div class="t2">Aponte a câmera e peça reposição</div>
+      <img src="${dataUrl}" alt=""><div class="t3">${esc(e.estabelecimento)} · ${esc(e.codigo)}</div></div>`;
+    setTimeout(() => window.print(), 100);
+  };
+}
+
+/* ---------------- AVISOS ---------------- */
+async function pgAvisos(main) {
+  const aba = lsGet('abaAvisos', 'aberto');
+  let fv = lsGet('vendAvisos', ''); if (fv && !VEND.some(v => v.email === fv)) fv = '';
+  const [avisosAll, exps] = await Promise.all([api.listAvisos(aba), api.listExpositores()]);
+  const mapExp = Object.fromEntries(exps.map(e => [e.id, e]));
+  const avisos = fv ? avisosAll.filter(a => mapExp[a.expositor_id] && lc(mapExp[a.expositor_id].vendedor) === fv) : avisosAll;
+  const geral = baseUrl() + '?aviso';
+  main.innerHTML = `
+    <div class="page-head"><h1>Avisos de reposição</h1><div class="sp"></div>
+      ${multiVend() ? `<select id="f-vend-av" style="width:auto">${optsVend(fv, 'Todos os vendedores')}</select>` : ''}
+      <div class="seg" id="aba"><button data-v="aberto" class="${aba === 'aberto' ? 'on' : ''}">Abertos</button><button data-v="atendido" class="${aba === 'atendido' ? 'on' : ''}">Atendidos</button></div></div>
+    <div class="stack">
+      <section class="card">${avisos.length ? `<div class="list">${avisos.map(a => {
+        const e = mapExp[a.expositor_id]; const w = e && zap(e.telefone);
+        return `<div class="aviso ${a.status === 'atendido' ? 'done' : ''}"><span class="dot"></span><div class="grow">
+          <div class="row"><b>${esc(a.estabelecimento)}</b><span class="small muted">${tempoAtras(a.created_at)}</span></div>
+          <div class="small muted">${e ? esc([e.bairro, e.produto, multiVend() ? 'vendedor: ' + nomeV(e.vendedor) : ''].filter(Boolean).join(' · ')) : 'Não ligado a nenhum expositor cadastrado'}${a.status === 'atendido' && a.atendido_em ? ' · atendido ' + tempoAtras(a.atendido_em) : ''}</div>
+          ${a.mensagem ? `<blockquote>${esc(a.mensagem)}</blockquote>` : ''}
+          <div class="btns" style="margin-top:10px">
+            ${a.status === 'aberto' && e ? `<button class="btn sm primary" data-visita="${e.id}">Registrar visita</button>` : ''}
+            ${e ? `<a class="btn sm" href="#/expositor/${e.id}">Ver expositor</a>` : ''}
+            ${w ? `<a class="btn sm" href="${w}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+            ${e && e.endereco ? `<a class="btn sm" href="${mapa(e)}" target="_blank" rel="noopener">Mapa</a>` : ''}
+            <button class="btn sm" data-st="${a.id}" data-to="${a.status === 'aberto' ? 'atendido' : 'aberto'}">${a.status === 'aberto' ? 'Marcar atendido' : 'Reabrir'}</button>
+          </div></div></div>`;
+      }).join('')}</div>` : `<div class="empty">${aba === 'aberto' ? 'Nenhum aviso aberto. Quando alguém escanear o QR, aparece aqui.' : 'Nenhum aviso atendido ainda.'}</div>`}</section>
+      <section class="card"><h2>Link geral de aviso</h2>
+        <p class="small muted" style="margin-top:-6px">Para mandar por WhatsApp a um local: a pessoa só digita o nome do estabelecimento.</p>
+        <div class="btns"><input readonly value="${esc(geral)}" style="flex:1;min-width:200px"><button class="btn" id="copiar-geral">Copiar</button></div>
+      </section>
+    </div>`;
+  $$('#aba button').forEach(b => b.onclick = () => { lsSet('abaAvisos', b.dataset.v); route(); });
+  const fva = $('#f-vend-av'); if (fva) fva.onchange = () => { lsSet('vendAvisos', fva.value); route(); };
+  $$('[data-st]').forEach(b => b.onclick = async () => { await api.setAviso(b.dataset.st, b.dataset.to); toast(b.dataset.to === 'atendido' ? 'Aviso marcado como atendido' : 'Aviso reaberto'); route(); });
+  $$('[data-visita]').forEach(b => b.onclick = () => { sessionStorage.setItem('abrirVisita', b.dataset.visita); location.hash = '#/expositor/' + b.dataset.visita; });
+  $('#copiar-geral').onclick = async () => { try { await navigator.clipboard.writeText(geral); toast('Link copiado'); } catch (err) { prompt('Copie o link:', geral); } };
+}
+
+/* ---------------- TELA PÚBLICA (QR) ---------------- */
+async function telaPublica(codigo) {
+  document.body.classList.add('publico');
+  document.title = 'Pedir reposição';
+  const app = $('#app');
+  app.innerHTML = `<div class="pub"><div class="pub-card">
+    <div class="pub-ico">${IC.caixa}</div>
+    <h1>Pedir reposição</h1>
+    <p class="muted" id="pub-sub" style="margin:0">Avise o fornecedor que o expositor está acabando.</p>
+    <form id="f-pub">
+      <label>Nome do estabelecimento<input name="nome" required maxlength="120" autocomplete="organization"></label>
+      <label>Recado (opcional)<textarea name="msg" rows="2" maxlength="500" placeholder="Ex.: acabou tal sabor"></textarea></label>
+      <button class="btn primary big" id="pub-btn">Enviar aviso</button>
+    </form>
+    ${DEMO ? '<p class="small muted" style="text-align:center;margin:16px 0 0"><a href="' + esc(baseUrl()) + '">← voltar ao painel (demo)</a></p>' : ''}
+  </div></div>`;
+  if (codigo) {
+    try {
+      const info = await api.infoPublica(codigo);
+      if (info) {
+        $('#f-pub').elements.nome.value = info.estabelecimento;
+        $('#pub-sub').innerHTML = `Expositor${info.produto ? ' de <b>' + esc(info.produto) + '</b>' : ''} em <b>${esc(info.estabelecimento)}</b>. É só tocar no botão.`;
+      }
+    } catch (err) {}
+  }
+  $('#f-pub').onsubmit = async ev => {
+    ev.preventDefault();
+    const f = ev.target, btn = $('#pub-btn'); btn.disabled = true; btn.textContent = 'Enviando…';
+    try {
+      const r = await api.criarAviso(codigo, f.elements.nome.value, f.elements.msg.value);
+      $('.pub-card').innerHTML = `<div class="pub-ok"><div class="pub-ico">${IC.check}</div>
+        <h1>${r === 'ja_existe' ? 'Já estamos sabendo!' : 'Aviso enviado!'}</h1>
+        <p class="muted">${r === 'ja_existe' ? 'Recebemos um aviso desse local há pouco. A reposição já está a caminho.' : 'Obrigado! Vamos passar aí para repor o quanto antes.'}</p>
+        ${DEMO ? '<p class="small"><a href="' + esc(baseUrl()) + '#/avisos">Ver no painel (demo) →</a></p>' : ''}</div>`;
+    } catch (err) {
+      btn.disabled = false; btn.textContent = 'Enviar aviso';
+      toast(err.message || 'Não foi possível enviar. Tente de novo.');
+    }
+  };
+}
+
+/* ---------------- LOGIN ---------------- */
+function telaLogin(erro) {
+  document.body.classList.add('publico');
+  $('#app').innerHTML = `<div class="pub"><div class="pub-card">
+    <div class="pub-ico">${IC.exp.replace('<svg', '<svg width="28" height="28"')}</div>
+    <h1>Entrar</h1><p class="muted" style="margin:0">Painel de expositores</p>
+    ${erro ? `<div class="erro" style="margin-top:14px">${esc(erro)}</div>` : ''}
+    <form id="f-login">
+      <label>E-mail<input name="email" type="email" required autocomplete="username"></label>
+      <label>Senha<input name="senha" type="password" required autocomplete="current-password"></label>
+      <button class="btn primary big" id="l-btn">Entrar</button>
+    </form></div></div>`;
+  $('#f-login').onsubmit = async ev => {
+    ev.preventDefault(); const f = ev.target; $('#l-btn').disabled = true;
+    try { await api.signIn(f.elements.email.value.trim(), f.elements.senha.value); iniciar(); }
+    catch (err) { telaLogin(err.message === 'Invalid login credentials' ? 'E-mail ou senha incorretos.' : err.message); }
+  };
+}
+
+/* ---------------- início ---------------- */
+let rodando = false;
+async function iniciar() {
+  const qs = new URLSearchParams(location.search);
+  if (qs.has('e') || qs.has('aviso')) return telaPublica((qs.get('e') || '').trim());
+  if (!DEMO) {
+    const sess = await api.session();
+    if (!sess) return telaLogin();
+    let admin = false; try { admin = await api.isAdmin(); } catch (e) {}
+    if (!admin) { await api.signOut(); return telaLogin('Este e-mail não está na lista de administradores (tabela "admins" no Supabase).'); }
+  }
+  try { EU = lc(await api.me()); } catch (e) { EU = ''; }
+  try { VEND = (await api.listVendedores() || []).map(v => ({email: lc(v.email), nome: (v.nome || '').trim()})); } catch (e) { VEND = []; }
+  if (EU && !VEND.some(v => v.email === EU)) VEND.push({email: EU, nome: ''});
+  document.body.classList.remove('publico');
+  $('#app').innerHTML = '';
+  if (!rodando) { rodando = true; window.addEventListener('hashchange', route); setInterval(atualizarBadge, 30000); }
+  route();
+}
+iniciar();
+})();
+</script>
+</body>
+</html>
