@@ -70,8 +70,8 @@ exemplo salvos só no seu navegador.
 
 Rota pública, **sem login**: `/nota` (ou `/nota.html`).
 
-1. **Tela da câmera** (`#/`): lê o QR Code do cupom com a biblioteca
-   [html5-qrcode](https://github.com/mebjas/html5-qrcode). Também dá para colar o link
+1. **Tela da câmera** (`#/`): lê o QR Code do cupom com o leitor nativo do navegador (Chrome
+   no Android) ou com o [zxing-wasm](https://github.com/Sec-ant/zxing-wasm) (iPhone e computador). Também dá para colar o link
    na mão ou abrir uma **nota de exemplo**.
 2. **Tela da nota** (`#/nota?url=...`): mostra "Carregando…", chama o backend e lista
    estabelecimento, data, total e os produtos (quantidade × preço unitário = total).
@@ -82,13 +82,16 @@ Para notas que não são cupom (revendedor, distribuidor), o sistema usa a **cha
 de 44 dígitos. Há três jeitos de ler, do mais rápido ao mais manual:
 
 1. **Código de barras ao vivo**: a câmera lê o código de barras do topo da DANFE (ele contém a chave).
-2. **Foto**: a pessoa tira uma foto. Se o código de barras estiver nítido na foto, a leitura é
-   direta. Se não, ela **arrasta o dedo sobre os números** da chave. A tela aproxima na área
+2. **Foto**: a pessoa tira uma foto. Primeiro o sistema procura o código de barras na foto
+   ampliada (as barras da DANFE são finas). Se achar, a leitura é direta. Se não, ela **arrasta o dedo sobre os números** da chave. A tela aproxima na área
    marcada para conferir, e o OCR ([Tesseract.js](https://github.com/naptha/tesseract.js),
-   carregado só nessa hora) lê os números.
+   carregado só nessa hora) lê os números. Antes do OCR, ele tenta de novo o código de barras logo
+   acima da área marcada. O OCR lê a imagem de vários jeitos e só dá a chave como certa quando
+   duas leituras concordam.
 3. **Digitar**: um campo com os números agrupados de 4 em 4 e contador.
 
-Em todos os casos, a chave é conferida pelo **dígito verificador** (módulo 11). Se o OCR errar
+Em todos os casos, a chave é conferida pelo **dígito verificador** (módulo 11) e pelos dígitos do
+CNPJ do emitente que está dentro dela. Se o OCR errar
 um número, a chave não confere e a tela pede para **marcar de novo, tirar outra foto ou
 corrigir à mão**. Uma leitura errada nunca é aceita como certa.
 

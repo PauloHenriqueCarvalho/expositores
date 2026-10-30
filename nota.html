@@ -42,7 +42,9 @@ input,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(-
 
 /* câmera */
 #leitor{border-radius:var(--radius);overflow:hidden;background:#000;aspect-ratio:1/1;position:relative}
-#leitor video{object-fit:cover}
+#leitor video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.mira{position:absolute;left:50%;top:50%;width:75%;aspect-ratio:1/1;transform:translate(-50%,-50%);border:2px solid rgba(255,255,255,.85);border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.35);pointer-events:none}
+.mira.barras{width:90%;aspect-ratio:auto;height:40%}
 #leitor-msg{position:absolute;inset:0;display:grid;place-items:center;color:#ddd;text-align:center;padding:24px;font-size:14px}
 .dica{margin:12px 0 4px;text-align:center}
 details{margin-top:12px}
@@ -94,12 +96,12 @@ summary{cursor:pointer;color:var(--muted);font-size:14px;padding:6px 0}
 <body>
 <main id="app"></main>
 <input id="foto" type="file" accept="image/*" capture="environment" hidden>
-<div id="leitor-arquivo" hidden></div>
 
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 (function () {
 'use strict';
+const ZXING_JS = 'https://cdn.jsdelivr.net/npm/zxing-wasm@2.2.4/dist/iife/reader/index.js';
+const ZXING_WASM = 'https://cdn.jsdelivr.net/npm/zxing-wasm@2.2.4/dist/reader/zxing_reader.wasm';
 const TESSERACT_JS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
 const CHAVE_DEMO = '35261012345678000195550010000456781123456787';
 const UFS = {11:1,12:1,13:1,14:1,15:1,16:1,17:1,21:1,22:1,23:1,24:1,25:1,26:1,27:1,28:1,29:1,31:1,32:1,33:1,35:1,41:1,42:1,43:1,50:1,51:1,52:1,53:1};
@@ -111,7 +113,6 @@ const qtd = n => Number(n).toLocaleString('pt-BR', {maximumFractionDigits: 3});
 const grupos = c => c.replace(/(.{4})(?=.)/g, '$1 ');
 const toast = t => { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 2600); };
 
-let scanner = null;   // câmera ao vivo
 let foto = null;      // canvas com a foto tirada (para marcar a área)
 let lida = null;      // {chave, ok, recorte} resultado da leitura da foto
 
@@ -188,7 +189,7 @@ function telaCamera(aba) {
   $('#app').innerHTML = `
     <div class="top"><i>N</i><div><h1>Ler nota fiscal</h1><div class="muted small">${nfe ? 'Aponte para o código de barras da nota' : 'Aponte para o QR Code do cupom'}</div></div></div>
     <nav class="abas"><a href="#/" class="${nfe ? '' : 'on'}">Cupom fiscal</a><a href="#/nfe" class="${nfe ? 'on' : ''}">Nota de distribuidor</a></nav>
-    <div id="leitor"><div id="leitor-msg">Abrindo a câmera…</div></div>
+    <div id="leitor"><div class="mira${nfe ? ' barras' : ''}"></div><div id="leitor-msg">Abrindo a câmera…</div></div>
     ${nfe ? `
       <p class="dica muted small">O código de barras fica no topo da nota (DANFE), à direita. Se não ler, tire uma foto <b>de perto</b> dessa parte da nota.</p>
       <div class="btns">
@@ -215,46 +216,126 @@ function telaCamera(aba) {
   iniciarCamera(nfe);
 }
 
-function iniciarCamera(nfe) {
+/* ---------- Leitura de códigos (QR Code e código de barras) ----------
+   Usa o leitor nativo do navegador quando existe (Chrome no Android) e, se não, o zxing-wasm
+   (iPhone e computador). O zxing é baixado só quando precisa. */
+let zxing = null, detector;
+function carregarZxing() {
+  if (!zxing) {
+    zxing = carregarScript(ZXING_JS).then(() => {
+      ZXingWASM.prepareZXingModule({overrides: {locateFile: (arq, pasta) => arq.endsWith('.wasm') ? ZXING_WASM : pasta + arq}});
+      return window.ZXingWASM;
+    });
+    zxing.catch(() => { zxing = null; });
+  }
+  return zxing;
+}
+async function detectorNativo() {
+  if (detector !== undefined) return detector;
+  detector = null;
+  try {
+    const f = 'BarcodeDetector' in window ? await BarcodeDetector.getSupportedFormats() : [];
+    if (f.includes('code_128') && f.includes('qr_code')) detector = new BarcodeDetector({formats: ['code_128', 'qr_code']});
+  } catch (e) {}
+  return detector;
+}
+// Textos dos códigos achados no canvas. Com "forte" (fotos), tenta o zxing também quando o nativo não acha.
+async function lerCodigos(canvas, forte) {
+  const d = await detectorNativo();
+  if (d) {
+    try { const r = await d.detect(canvas); if (r.length || !forte) return r.map(x => x.rawValue); } catch (e) {}
+  }
+  const z = await carregarZxing().catch(() => null);
+  if (!z) return [];
+  const img = canvas.getContext('2d', {willReadFrequently: true}).getImageData(0, 0, canvas.width, canvas.height);
+  return (await z.readBarcodes(img, {formats: ['Code128', 'QRCode'], tryHarder: true, maxNumberOfSymbols: 1})).map(x => x.text);
+}
+const codigoUtil = t => /^https?:\/\//i.test(t) || chaveValida(limparChave(t));
+
+// Copia um pedaço da imagem para um canvas novo, com a largura pedida (amplia ou reduz).
+function recorte(origem, x, y, w, h, largura) {
+  const k = largura / w, c = document.createElement('canvas');
+  c.width = Math.round(w * k); c.height = Math.round(h * k);
+  const cx = c.getContext('2d', {willReadFrequently: true});
+  cx.imageSmoothingQuality = 'high';
+  cx.drawImage(origem, x, y, w, h, 0, 0, c.width, c.height);
+  return c;
+}
+
+// Procura um código na foto (ou só na área indicada). As barras de uma DANFE são finas: se ficarem
+// com menos de ~2 px na foto, o leitor não acha. Por isso amplia: a foto inteira e depois por partes.
+async function codigoNaFoto(img, area) {
+  const partes = [];
+  if (area) partes.push(area);
+  else {
+    partes.push({x: 0, y: 0, w: img.width, h: img.height});
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) partes.push({x: j * img.width / 4, y: i * img.height / 4, w: img.width / 2, h: img.height / 2});
+  }
+  for (const a of partes) {
+    const x = Math.max(0, a.x), y = Math.max(0, a.y), w = Math.min(img.width - x, a.w), h = Math.min(img.height - y, a.h);
+    if (w < 20 || h < 20) continue;
+    try {
+      for (const t of await lerCodigos(recorte(img, x, y, w, h, Math.min(3000, Math.max(w, Math.min(w * 2, 2400)))), true))
+        if (codigoUtil(t)) return t;
+    } catch (e) {}
+  }
+  return null;
+}
+
+/* ---------- Câmera ao vivo ---------- */
+let camera = null;
+async function iniciarCamera(nfe) {
   const msg = t => { const m = $('#leitor-msg'); if (m) m.textContent = t; };
-  if (!window.Html5Qrcode) return msg('Não foi possível carregar o leitor. Verifique a internet.');
-  if (!window.isSecureContext) return msg('A câmera só funciona com https:// (ou em localhost).');
-  const s = new Html5Qrcode('leitor', {
-    verbose: false,
-    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.CODE_128],
-    experimentalFeatures: {useBarCodeDetectorIfSupported: true},
-  });
-  scanner = s;
-  s.start(
-    {facingMode: 'environment'},
-    // Código de barras é largo e baixo; QR Code é quadrado.
-    {fps: 10, qrbox: (w, h) => nfe ? {width: Math.floor(w * 0.9), height: Math.floor(h * 0.4)} : (x => ({width: x, height: x}))(Math.floor(Math.min(w, h) * 0.75))},
-    texto => { if (scanner === s && aoLer(texto)) pararCamera(); },
-    () => {}
-  ).then(() => msg('')).catch(() => { if (scanner === s) scanner = null; msg('Sem acesso à câmera. Libere a permissão no navegador' + (nfe ? ', tire uma foto ou digite a chave.' : ' ou cole o link abaixo.')); });
+  if (!window.isSecureContext || !navigator.mediaDevices) return msg('A câmera só funciona com https:// (ou em localhost).');
+  const eu = camera = {parado: false};
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({audio: false, video: {facingMode: {ideal: 'environment'}, width: {ideal: 1920}, height: {ideal: 1080}}});
+  } catch (e) {
+    if (camera === eu) msg('Sem acesso à câmera. Libere a permissão no navegador' + (nfe ? ', tire uma foto ou digite a chave.' : ' ou cole o link abaixo.'));
+    return;
+  }
+  if (eu.parado) { stream.getTracks().forEach(t => t.stop()); return; }
+  eu.stream = stream;
+  const video = document.createElement('video');
+  video.setAttribute('playsinline', ''); video.muted = true; video.srcObject = stream;
+  $('#leitor').prepend(video);
+  try { await video.play(); } catch (e) {}
+  msg('');
+  if (!(await detectorNativo())) carregarZxing().catch(() => msg('Não foi possível carregar o leitor. Verifique a internet.'));
+
+  // Lê só o meio da imagem (onde fica a mira): faixa larga para código de barras, quadrado para QR Code.
+  const ciclo = async () => {
+    if (eu.parado) return;
+    const vw = video.videoWidth, vh = video.videoHeight;
+    if (vw) {
+      const w = nfe ? vw * 0.9 : Math.min(vw, vh) * 0.8, h = nfe ? Math.min(vh, w * 0.5) : w;
+      try {
+        for (const t of await lerCodigos(recorte(video, (vw - w) / 2, (vh - h) / 2, w, h, w), false))
+          if (!eu.parado && aoLer(t)) { pararCamera(); return; }
+      } catch (e) {}
+    }
+    if (!eu.parado) eu.timer = setTimeout(ciclo, 150);
+  };
+  ciclo();
 }
 
 function pararCamera() {
-  const s = scanner; scanner = null;
-  if (!s) return Promise.resolve();
-  return s.stop().then(() => s.clear()).catch(() => {});
+  const c = camera; camera = null;
+  if (c) { c.parado = true; clearTimeout(c.timer); if (c.stream) c.stream.getTracks().forEach(t => t.stop()); }
+  return Promise.resolve();
 }
 
-/* ---------- Foto: carregar, tentar o código de barras, senão marcar a área ---------- */
+/* ---------- Foto: tentar o código de barras, senão marcar a área ---------- */
 $('#foto').onchange = async e => {
   const arq = e.target.files[0]; if (!arq) return;
-  // 1º: se o código de barras estiver nítido na foto, nem precisa marcar nada.
   e.target.value = ''; // permite escolher a mesma foto de novo
   await pararCamera();
-  // 1º: se o código de barras estiver nítido na foto, nem precisa marcar nada.
-  if (window.Html5Qrcode) {
-    const leitor = new Html5Qrcode('leitor-arquivo', {verbose: false, formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.QR_CODE], experimentalFeatures: {useBarCodeDetectorIfSupported: true}});
-    try {
-      if (aoLer(await leitor.scanFile(arq, false))) { toast('Código de barras lido na foto'); return; }
-    } catch (err) { /* sem código de barras legível: segue para marcar a área */ }
-    finally { try { leitor.clear(); } catch (err) {} }
-  }
   try { foto = await carregarImagem(arq); } catch (err) { return toast('Não consegui abrir a foto. Tente de novo.'); }
+  // 1º: se o código de barras for legível na foto, nem precisa marcar nada.
+  carregando('Procurando o código de barras na foto');
+  const cod = await codigoNaFoto(foto);
+  if (cod && aoLer(cod)) { toast('Código de barras lido na foto'); return; }
   if (location.hash === '#/nfe/foto') route(); // já estava nessa tela (tirou outra foto)
   else location.hash = '#/nfe/foto';
 };
@@ -336,7 +417,15 @@ function telaMarcar() {
   $('#ler').onclick = async () => {
     $('#ler').disabled = true; $('#outra').style.cssText = 'pointer-events:none;opacity:.45';
     const aviso = t => { $('#lendo').innerHTML = `<div class="lendo"><div class="spin"></div><div class="small">${esc(t)}</div></div>`; };
-    aviso('Preparando…');
+    const m = norm(sel);
+    aviso('Procurando o código de barras…');
+    // Na DANFE o código de barras fica logo acima da chave: tenta lê-lo antes do OCR.
+    const cod = await codigoNaFoto(foto, {x: m.x - m.w * 0.15, y: m.y - m.h * 6, w: m.w * 1.3, h: m.h * 7.5});
+    if (cod && chaveValida(limparChave(cod))) {
+      lida = {chave: limparChave(cod), ok: true, barras: true, recorte: recorte(foto, m.x, m.y, m.w, m.h, Math.min(1200, m.w * 2)).toDataURL('image/png')};
+      location.hash = '#/nfe/chave';
+      return;
+    }
     try {
       lida = await Promise.race([
         lerChaveDaImagem(foto, norm(sel), aviso),
@@ -454,7 +543,7 @@ function telaDigitar() {
     const ok = c.length === 44 && chaveValida(c);
     let st;
     if (ok && daFoto && r.duvida && c === r.chave) st = `<div class="status warn">Li esta chave, mas não tenho certeza. <b>Compare com a nota</b> antes de buscar, ou marque de novo.</div>`;
-    else if (ok) st = `<div class="status ok">✓ Chave conferida${daFoto ? '. Confira se bate com a nota.' : ''}</div>`;
+    else if (ok) st = `<div class="status ok">✓ Chave conferida${daFoto && r.barras && c === r.chave ? ' (lida pelo código de barras)' : daFoto ? '. Confira se bate com a nota.' : ''}</div>`;
     else if (c.length === 44) st = `<div class="status bad">Essa chave não confere: algum número está errado. ${daFoto ? 'Corrija aqui, marque de novo ou tire outra foto mais de perto.' : 'Confira com a nota.'}</div>`;
     else if (daFoto && c.length === 0 && r.erroLeitura) st = `<div class="status bad">Não consegui carregar o leitor de números. Verifique a internet ou digite a chave.</div>`;
     else if (daFoto && !c.length) st = `<div class="status bad">Não encontrei números nessa área. Marque de novo, tire outra foto mais de perto ou digite.</div>`;
