@@ -48,6 +48,7 @@ module.exports = async function handler(req, res) {
 /* ---------- chave de acesso ---------- */
 // Layout: cUF(2) AAMM(4) CNPJ(14) modelo(2) série(3) número(9) tpEmis(1) código(8) DV(1).
 // Desde 2026 o CNPJ pode ser alfanumérico; no cálculo do DV cada caractere vale (código ASCII − 48).
+// O mesmo cálculo (módulo 11, pesos 2–9) serve para o DV da chave e para os DVs do CNPJ.
 function dvChave(base43) {
   let soma = 0, peso = 2;
   for (let i = base43.length - 1; i >= 0; i--) {
@@ -63,7 +64,20 @@ function validarChave(c) {
   if (!/^\d{6}[0-9A-Z]{12}\d{26}$/.test(c)) return 'A chave de acesso tem caracteres inválidos.';
   if (!UFS[c.slice(0, 2)]) return 'Os 2 primeiros dígitos da chave não são de um estado válido. Confira a chave.';
   if (dvChave(c.slice(0, 43)) !== +c[43]) return 'A chave não confere (dígito verificador errado). Algum número foi lido ou digitado errado.';
+  const mes = +c.slice(4, 6), doc = c.slice(6, 20);
+  if (mes < 1 || mes > 12) return 'O mês de emissão dentro da chave é inválido. Confira a chave.';
+  if (!cnpjValido(doc) && !(doc.startsWith('000') && cpfValido(doc.slice(3)))) return 'O CNPJ do emitente dentro da chave não confere. Algum número foi lido ou digitado errado.';
   return '';
+}
+
+// CNPJ (numérico ou alfanumérico): DVs módulo 11 com pesos 2–9 da direita para a esquerda.
+function cnpjValido(d) {
+  return dvChave(d.slice(0, 12)) === +d[12] && dvChave(d.slice(0, 13)) === +d[13];
+}
+function cpfValido(d) {
+  if (!/^\d{11}$/.test(d) || /^(\d)\1+$/.test(d)) return false;
+  const dv = b => { let s = 0; for (let i = 0; i < b.length; i++) s += +b[i] * (b.length + 1 - i); const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return dv(d.slice(0, 9)) === +d[9] && dv(d.slice(0, 10)) === +d[10];
 }
 
 function decodificarChave(c) {
@@ -104,7 +118,7 @@ function semVazios(o) {
   return r;
 }
 
-const CHAVE_DEMO = '35261012345678000190550010000456781123456788';
+const CHAVE_DEMO = '35261012345678000195550010000456781123456787';
 const NOTA_DEMO = {
   estabelecimento: 'Distribuidora Exemplo Ltda',
   data_emissao: '27/10/2026 14:05:00',

@@ -120,7 +120,7 @@ function campo(html, classe) {
 
 const NOTA_DEMO = {
   estabelecimento: 'Supermercado Exemplo Ltda',
-  cnpj: '12.345.678/0001-90',
+  cnpj: '12.345.678/0001-95',
   endereco: 'Av. Brasil, 1000 - Centro',
   data_emissao: '28/10/2026 10:42:15',
   chave: '35261012345678000190650010000123451000123450',

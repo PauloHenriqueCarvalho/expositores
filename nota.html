@@ -9,12 +9,12 @@
 :root{
   --bg:#f5f3ef;--card:#fff;--ink:#1c1b1a;--muted:#6d6a66;--line:#e7e3dd;--soft:#f0ece6;
   --accent:#e2552b;--accent-ink:#fff;--accent-soft:#fbe7df;
-  --ok:#1e8a5a;--ok-soft:#e1f3ea;--bad:#c53030;--bad-soft:#fbe3e3;
+  --ok:#1e8a5a;--ok-soft:#e1f3ea;--warn:#9a6412;--warn-soft:#fbf0d9;--bad:#c53030;--bad-soft:#fbe3e3;
   --radius:14px;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04);
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#121212;--card:#1c1c1c;--ink:#f2f0ed;--muted:#a19d98;--line:#2c2b29;--soft:#252422;
-  --accent:#ff6b3d;--accent-soft:#3a2219;--ok:#4cc38a;--ok-soft:#163327;--bad:#f07272;--bad-soft:#3d1a1a;--shadow:none;
+  --accent:#ff6b3d;--accent-soft:#3a2219;--ok:#4cc38a;--ok-soft:#163327;--warn:#e0a84a;--warn-soft:#3a2d14;--bad:#f07272;--bad-soft:#3d1a1a;--shadow:none;
 }}
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -61,6 +61,7 @@ summary{cursor:pointer;color:var(--muted);font-size:14px;padding:6px 0}
 .status{border-radius:12px;padding:10px 12px;font-size:14px;margin-top:10px}
 .status.ok{background:var(--ok-soft);color:var(--ok)}
 .status.bad{background:var(--bad-soft);color:var(--bad)}
+.status.warn{background:var(--warn-soft);color:var(--warn)}
 .status.neutro{background:var(--soft);color:var(--muted)}
 .recorte{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);margin:0 auto 12px;background:#fff}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
@@ -100,7 +101,7 @@ summary{cursor:pointer;color:var(--muted);font-size:14px;padding:6px 0}
 (function () {
 'use strict';
 const TESSERACT_JS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
-const CHAVE_DEMO = '35261012345678000190550010000456781123456788';
+const CHAVE_DEMO = '35261012345678000195550010000456781123456787';
 const UFS = {11:1,12:1,13:1,14:1,15:1,16:1,17:1,21:1,22:1,23:1,24:1,25:1,26:1,27:1,28:1,29:1,31:1,32:1,33:1,35:1,41:1,42:1,43:1,50:1,51:1,52:1,53:1};
 
 const $ = s => document.querySelector(s);
@@ -122,21 +123,33 @@ function dvChave(base43) {
   const r = soma % 11; return r < 2 ? 0 : 11 - r;
 }
 const limparChave = s => String(s || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+// Além do DV da chave, confere o CNPJ (ou CPF) do emitente, o mês e o modelo:
+// assim um número lido errado quase nunca passa como chave válida.
 function chaveValida(c) {
-  return /^\d{6}[0-9A-Z]{12}\d{26}$/.test(c) && !!UFS[c.slice(0, 2)] && dvChave(c.slice(0, 43)) === +c[43];
+  if (!/^\d{6}[0-9A-Z]{12}\d{26}$/.test(c) || !UFS[c.slice(0, 2)] || dvChave(c.slice(0, 43)) !== +c[43]) return false;
+  const mes = +c.slice(4, 6), doc = c.slice(6, 20);
+  return mes >= 1 && mes <= 12 && /^(55|65)$/.test(c.slice(20, 22)) && (cnpjValido(doc) || (doc.startsWith('000') && cpfValido(doc.slice(3))));
 }
-// Procura, dentro do texto lido, uma sequência de 44 dígitos que seja uma chave válida.
-function acharChave(texto) {
+// CNPJ (numérico ou alfanumérico): DVs módulo 11 com pesos 2–9 da direita para a esquerda.
+function cnpjValido(d) {
+  const dv = b => { let s = 0, p = 2; for (let i = b.length - 1; i >= 0; i--) { s += (b.charCodeAt(i) - 48) * p; p = p === 9 ? 2 : p + 1; } const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return dv(d.slice(0, 12)) === +d[12] && dv(d.slice(0, 13)) === +d[13];
+}
+function cpfValido(d) {
+  if (!/^\d{11}$/.test(d) || /^(\d)\1+$/.test(d)) return false;
+  const dv = b => { let s = 0; for (let i = 0; i < b.length; i++) s += +b[i] * (b.length + 1 - i); const r = s % 11; return r < 2 ? 0 : 11 - r; };
+  return dv(d.slice(0, 9)) === +d[9] && dv(d.slice(0, 10)) === +d[10];
+}
+// Chaves válidas que aparecem no texto lido: linhas com exatamente 44 dígitos e, como reserva,
+// trechos de 44 dígitos seguidos (quando o OCR quebra a linha no meio).
+function chavesNoTexto(texto) {
   const linhas = texto.split('\n').map(l => l.replace(/\D/g, '')).filter(Boolean);
-  const candidatos = [...linhas, linhas.join('')];
-  for (const d of candidatos)
-    for (let i = 0; i + 44 <= d.length; i++) {
-      const c = d.slice(i, i + 44);
-      if (/^(55|65)$/.test(c.slice(20, 22)) && chaveValida(c)) return {chave: c, ok: true};
-    }
-  // Não achou: devolve a linha mais parecida com uma chave, para a pessoa corrigir.
-  const melhor = linhas.sort((a, b) => Math.abs(a.length - 44) - Math.abs(b.length - 44))[0] || '';
-  return {chave: melhor.slice(0, 44), ok: false};
+  const achadas = new Set(), juntas = linhas.join('');
+  for (const d of linhas) if (d.length === 44 && chaveValida(d)) achadas.add(d);
+  for (let i = 0; i + 44 <= juntas.length; i++) if (chaveValida(juntas.slice(i, i + 44))) achadas.add(juntas.slice(i, i + 44));
+  // Linha mais parecida com uma chave, para a pessoa corrigir se nada for válido.
+  const parecida = linhas.slice().sort((a, b) => Math.abs(a.length - 44) - Math.abs(b.length - 44))[0] || '';
+  return {achadas: [...achadas], parecida};
 }
 
 /* ---------- rotas ----------
@@ -365,25 +378,37 @@ async function lerChaveDaImagem(img, r, aviso) {
   const pad = Math.round(Math.max(r.h * 0.15, 4));
   const x = Math.max(0, Math.round(r.x - pad)), y = Math.max(0, Math.round(r.y - pad));
   const w = Math.min(img.width - x, Math.round(r.w + pad * 2)), h = Math.min(img.height - y, Math.round(r.h + pad * 2));
-  const k = Math.max(1, Math.min(4, 1400 / w));
-  const base = document.createElement('canvas');
-  base.width = Math.round(w * k); base.height = Math.round(h * k);
-  const bctx = base.getContext('2d');
-  bctx.imageSmoothingQuality = 'high';
-  bctx.drawImage(img, x, y, w, h, 0, 0, base.width, base.height);
+  // Cada leitura erra em lugares diferentes (troca 0 por 9, junta grupos…). Por isso lê com várias
+  // versões da imagem e só dá a chave como conferida quando 2 leituras chegam à mesma chave válida.
+  const versoes = [], recortar = largura => {
+    const k = Math.max(1, Math.min(4, largura / w));
+    const c = document.createElement('canvas');
+    c.width = Math.round(w * k); c.height = Math.round(h * k);
+    const cx = c.getContext('2d'); cx.imageSmoothingQuality = 'high';
+    cx.drawImage(img, x, y, w, h, 0, 0, c.width, c.height);
+    return c;
+  };
+  const p900 = recortar(900), p1400 = recortar(1400);
+  for (const [base, bin, modo] of [[p900, false, '6'], [p1400, true, '6'], [p1400, false, '11'], [p900, true, '6'], [p1400, false, '6'], [p900, true, '11'], [p900, false, '11'], [p1400, true, '11']])
+    versoes.push({c: filtrar(base, bin), modo});
 
-  const cinza = filtrar(base, false), pb = filtrar(base, true);
   const worker = await workerOcr(aviso);
-  await worker.setParameters({tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '6'});
-  // Tenta primeiro a versão preto e branco; se não achar uma chave válida, tenta em tons de cinza.
-  let melhor = null;
-  for (const c of [pb, cinza]) {
-    const {data} = await worker.recognize(c);
-    const achou = acharChave(data.text);
-    if (achou.ok) return {...achou, recorte: c.toDataURL('image/png')};
-    if (!melhor || Math.abs(achou.chave.length - 44) < Math.abs(melhor.chave.length - 44)) melhor = {...achou, recorte: c.toDataURL('image/png')};
+  const votos = new Map();
+  let parecida = '';
+  for (let i = 0; i < versoes.length; i++) {
+    ocrAviso = t => aviso(t.replace('Lendo os números…', 'Lendo os números (' + (i + 1) + '/' + versoes.length + ')…'));
+    await worker.setParameters({tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: versoes[i].modo});
+    const r = chavesNoTexto((await worker.recognize(versoes[i].c)).data.text);
+    for (const c of r.achadas) votos.set(c, (votos.get(c) || 0) + 1);
+    if (Math.abs(r.parecida.length - 44) < Math.abs(parecida.length - 44)) parecida = r.parecida;
+    const [melhor, n] = [...votos].sort((a, b) => b[1] - a[1])[0] || [];
+    if (n >= 2) return {chave: melhor, ok: true, recorte: versoes[0].c.toDataURL('image/png')};
   }
-  return melhor;
+  const [unica] = [...votos.keys()];
+  const recorte = versoes[0].c.toDataURL('image/png');
+  // Só uma leitura deu chave válida: mostra, mas pede para a pessoa comparar com a nota.
+  if (votos.size === 1) return {chave: unica, ok: false, duvida: true, recorte};
+  return {chave: parecida.slice(0, 44), ok: false, recorte};
 }
 
 // Tons de cinza e, se pedido, preto e branco com limiar automático (Otsu).
@@ -414,7 +439,7 @@ function telaDigitar() {
     <div class="top"><a href="#/nfe" class="voltar" aria-label="Voltar">‹</a><div><h1>${daFoto ? 'Confira a chave' : 'Digite a chave'}</h1><div class="muted small">${daFoto ? 'Compare com a nota antes de buscar' : 'Os 44 números embaixo de “CHAVE DE ACESSO”'}</div></div></div>
     <div class="card">
       ${daFoto && r.recorte ? `<img class="recorte" src="${r.recorte}" alt="Área marcada na foto">` : ''}
-      <textarea id="chave" class="chave-in" rows="2" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="0000 0000 0000 0000 …">${esc(grupos(r ? r.chave : ''))}</textarea>
+      <textarea id="chave" class="chave-in" rows="3" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="0000 0000 0000 0000 …">${esc(grupos(r ? r.chave : ''))}</textarea>
       <div id="status"></div>
       <button id="buscar" class="btn pri full" style="margin-top:12px" disabled>Buscar nota</button>
     </div>
@@ -428,7 +453,8 @@ function telaDigitar() {
     if (fim) inp.setSelectionRange(inp.value.length, inp.value.length);
     const ok = c.length === 44 && chaveValida(c);
     let st;
-    if (ok) st = `<div class="status ok">✓ Chave conferida${daFoto ? '. Confira se bate com a nota.' : ''}</div>`;
+    if (ok && daFoto && r.duvida && c === r.chave) st = `<div class="status warn">Li esta chave, mas não tenho certeza. <b>Compare com a nota</b> antes de buscar, ou marque de novo.</div>`;
+    else if (ok) st = `<div class="status ok">✓ Chave conferida${daFoto ? '. Confira se bate com a nota.' : ''}</div>`;
     else if (c.length === 44) st = `<div class="status bad">Essa chave não confere: algum número está errado. ${daFoto ? 'Corrija aqui, marque de novo ou tire outra foto mais de perto.' : 'Confira com a nota.'}</div>`;
     else if (daFoto && c.length === 0 && r.erroLeitura) st = `<div class="status bad">Não consegui carregar o leitor de números. Verifique a internet ou digite a chave.</div>`;
     else if (daFoto && !c.length) st = `<div class="status bad">Não encontrei números nessa área. Marque de novo, tire outra foto mais de perto ou digite.</div>`;

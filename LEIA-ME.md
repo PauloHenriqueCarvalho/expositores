@@ -102,7 +102,7 @@ Sempre devolve o que está dentro da própria chave: `uf`, `mes_emissao`, `cnpj`
 `modelo`, `serie` e `numero`. **Os produtos só vêm com uma API externa configurada**
 (`NFE_API_URL` + `NFE_API_KEY`, recebe `POST { chave }`), porque a consulta completa da NF-e na
 SEFAZ pede captcha ou certificado digital. Sem API, a resposta vem com `produtos: []` e um `aviso`.
-A chave `35261012345678000190550010000456781123456788` devolve uma nota de exemplo.
+A chave `35261012345678000195550010000456781123456787` devolve uma nota de exemplo.
 
 ## Backend: `GET|POST /api/nfce`
 
