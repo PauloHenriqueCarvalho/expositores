@@ -96,6 +96,7 @@ summary{cursor:pointer;color:var(--muted);font-size:14px;padding:6px 0}
 <body>
 <main id="app"></main>
 <input id="foto" type="file" accept="image/*" capture="environment" hidden>
+<input id="foto-ocr" type="file" accept="image/*" hidden>
 
 <script>
 (function () {
@@ -169,6 +170,7 @@ async function route() {
   if (caminho === 'chave') return qs.get('c') ? telaChave(qs.get('c')) : (location.hash = '#/nfe');
   if (caminho === 'nfe/foto') return foto ? telaMarcar() : (location.hash = '#/nfe');
   if (caminho === 'nfe/chave') return telaDigitar();
+  if (caminho === 'ocr') return telaOcr();
   telaCamera(caminho === 'nfe' ? 'nfe' : 'cupom');
 }
 const abrirNota = url => { location.hash = '#/nota?url=' + encodeURIComponent(url); };
@@ -196,7 +198,8 @@ function telaCamera(aba) {
         <label for="foto" class="btn pri full">Tirar foto e marcar a chave</label>
         <a href="#/nfe/chave" class="btn full">Digitar os 44 números</a>
         <button id="demo" class="btn full">Ver nota de exemplo</button>
-      </div>` : `
+      </div>
+      <p class="small" style="text-align:center;margin-top:16px"><a href="#/ocr" class="muted">Teste: extrair todo o texto da nota (OCR → PDF)</a></p>` : `
       <p class="dica muted small">O QR Code fica no rodapé do cupom (NFC-e). Segure o celular parado, a uns 15 cm.</p>
       <details>
         <summary>Não consegue usar a câmera?</summary>
@@ -640,6 +643,177 @@ function telaErro(msg, tentar, voltar) {
       <a href="${voltar}" class="btn pri">Ler outra nota</a>
     </div>`;
   $('#denovo').onclick = tentar;
+}
+
+/* ---------- Teste: OCR da DANFE inteira → produtos + texto + PDF pesquisável ----------
+   Usa o Tesseract em português. O PDF tem a imagem da nota com o texto reconhecido "por baixo",
+   então dá para selecionar, copiar e buscar. Os produtos saem da tabela da DANFE, e cada linha é
+   conferida pela conta quantidade × valor unitário = valor total. */
+let ocrPor = null;
+function workerPor(aviso) {
+  if (!ocrPor) {
+    ocrPor = (async () => {
+      if (!window.Tesseract) await carregarScript(TESSERACT_JS);
+      let falhou;
+      const erro = new Promise((_, rej) => { falhou = rej; });
+      return Promise.race([erro, Tesseract.createWorker('por', 1, {
+        logger: m => { if (m.status === 'recognizing text') ocrPorAviso('Lendo o texto… ' + Math.round(m.progress * 100) + '%'); },
+        errorHandler: e => falhou(e),
+      })]);
+    })();
+    ocrPor.catch(() => { ocrPor = null; });
+  }
+  ocrPorAviso = aviso;
+  aviso('Carregando o leitor em português (na primeira vez baixa alguns MB)…');
+  return ocrPor;
+}
+let ocrPorAviso = () => {};
+
+// Preto e branco com limiar local (aguenta sombra e luz desigual) e sem as bordas da tabela:
+// traços retos mais compridos que 3% da largura são linhas da tabela, não letras.
+function semBordas(c) {
+  const W = c.width, H = c.height, ctx = c.getContext('2d', {willReadFrequently: true});
+  const d = ctx.getImageData(0, 0, W, H), px = d.data, g = new Float32Array(W * H);
+  for (let i = 0; i < W * H; i++) g[i] = px[i * 4] * .299 + px[i * 4 + 1] * .587 + px[i * 4 + 2] * .114;
+  const S = new Float64Array((W + 1) * (H + 1));
+  for (let y = 0; y < H; y++) { let l = 0; for (let x = 0; x < W; x++) { l += g[y * W + x]; S[(y + 1) * (W + 1) + x + 1] = S[y * (W + 1) + x + 1] + l; } }
+  const R = 25, tinta = new Uint8Array(W * H);
+  for (let y = 0; y < H; y++) {
+    const y0 = Math.max(0, y - R), y1 = Math.min(H, y + R);
+    for (let x = 0; x < W; x++) {
+      const x0 = Math.max(0, x - R), x1 = Math.min(W, x + R);
+      const media = (S[y1 * (W + 1) + x1] - S[y0 * (W + 1) + x1] - S[y1 * (W + 1) + x0] + S[y0 * (W + 1) + x0]) / ((x1 - x0) * (y1 - y0));
+      tinta[y * W + x] = g[y * W + x] < media * 0.85 ? 1 : 0;
+    }
+  }
+  const L = Math.round(W * 0.03), borda = new Uint8Array(W * H);
+  const varrer = (n, m, idx) => {
+    for (let a = 0; a < n; a++) {
+      let ini = -1;
+      for (let b = 0; b <= m; b++) {
+        const t = b < m && tinta[idx(a, b)];
+        if (t && ini < 0) ini = b;
+        if (!t && ini >= 0) { if (b - ini >= L) for (let k = ini; k < b; k++) borda[idx(a, k)] = 1; ini = -1; }
+      }
+    }
+  };
+  varrer(H, W, (y, x) => y * W + x); // linhas horizontais
+  varrer(W, H, (x, y) => y * W + x); // linhas verticais
+  for (let i = 0; i < W * H; i++) px[i * 4] = px[i * 4 + 1] = px[i * 4 + 2] = tinta[i] && !borda[i] ? 0 : 255;
+  ctx.putImageData(d, 0, 0);
+  return c;
+}
+
+// Lê a tabela "Dados dos produtos" do texto da DANFE. Uma linha de produto tem o NCM (8 dígitos)
+// e termina com quantidade, valor unitário e valor total. O OCR às vezes perde a vírgula
+// ("924000" em vez de "92,4000"): testa as posições possíveis e fica com a que fecha a conta.
+function produtosDanfe(texto) {
+  const itens = [];
+  for (const bruta of texto.split('\n')) {
+    const linha = bruta.replace(/[|\[\]“”"'!—–_{}()]/g, ' ').replace(/\s+/g, ' ').trim();
+    const ncm = linha.match(/(^|\s)(\d{8,9})(\s|$)/);
+    if (!ncm) continue;
+    const tokens = linha.split(' ');
+    const nums = [];
+    for (let i = tokens.length - 1; i >= 0 && nums.length < 3; i--) if (/^\d[\d.,]*$/.test(tokens[i])) nums.unshift(i); else if (nums.length) break;
+    if (nums.length < 3) continue;
+    const [q, u, t] = nums.map(i => tokens[i]);
+    const conta = resolverConta(q, u, t);
+    const antes = tokens[nums[0] - 1] || '';
+    const pos = linha.indexOf(ncm[2], ncm.index);
+    const inicio = linha.slice(0, pos).trim().split(' ');
+    const codigo = /\d/.test(inicio[0] || '') && inicio.length > 1 ? inicio.shift().replace(/[^0-9A-Za-z.-]/g, '') : '';
+    itens.push({
+      id: itens.length + 1, codigo,
+      nome: inicio.join(' ').replace(/^[^0-9A-Za-zÀ-ú]+/, '') || 'Produto ' + (itens.length + 1),
+      unidade: /^[A-Za-z]{1,6}$/.test(antes) ? (/^(ex|ox|cx)$/i.test(antes) ? 'CX' : antes.toUpperCase()) : '',
+      ...conta,
+    });
+  }
+  const soma = Math.round(itens.reduce((s, i) => s + (i.preco_total || 0), 0) * 100) / 100;
+  // A soma confere se aparece como algum valor da nota (ex.: "V. TOTAL PRODUTOS").
+  const valores = (texto.match(/\d{1,3}(?:[.,]\d{3})*[.,]\d{2}(?!\d)/g) || []).map(v => +v.replace(/\D/g, '') / 100);
+  return {itens, soma, somaNaNota: itens.length > 0 && valores.some(v => Math.abs(v - soma) < 0.011)};
+}
+
+function resolverConta(q, u, t) {
+  const dig = s => s.replace(/\D/g, ''), casas = s => { const m = s.match(/[.,](\d+)$/); return m ? m[1].length : 0; };
+  const T = +dig(t) / 100; // o valor total sempre tem 2 casas
+  let melhor = null;
+  for (const kq of [0, 1, 2, 3, 4]) for (const ku of [2, 3, 4, 5, 6, 10]) {
+    const Q = +dig(q) / 10 ** kq, U = +dig(u) / 10 ** ku;
+    if (!Q || Math.abs(Q * U - T) > Math.max(0.011, T * 0.0005)) continue;
+    // Prefere as casas decimais que o OCR leu; senão, o padrão da DANFE (4 casas).
+    const custo = (kq === casas(q) ? 0 : kq === 4 ? 1 : 2) + (ku === casas(u) ? 0 : ku === 4 ? 1 : 2);
+    if (!melhor || custo < melhor.custo) melhor = {custo, Q, U};
+  }
+  if (melhor) return {quantidade: melhor.Q, preco_unitario: melhor.U, preco_total: T, conferido: true};
+  const n = s => +dig(s) / 10 ** casas(s);
+  return {quantidade: n(q), preco_unitario: n(u), preco_total: T, conferido: false};
+}
+
+function telaOcr() {
+  $('#app').innerHTML = `
+    <div class="top"><a href="#/nfe" class="voltar" aria-label="Voltar">‹</a><div><h1>Texto da nota</h1><div class="muted small">Teste de OCR: extrai todo o texto e gera um PDF</div></div></div>
+    <div class="card">
+      <p class="small" style="margin-top:0">Fotografe a nota inteira, de frente, com boa luz e sem sombra. Quanto mais reta e nítida, melhor o resultado.</p>
+      <div class="btns">
+        <label for="foto-ocr" class="btn pri full" id="escolher">Tirar ou escolher foto</label>
+      </div>
+      <div id="ocr-status"></div>
+    </div>
+    <div id="ocr-res"></div>`;
+  const inp = $('#foto-ocr');
+  inp.setAttribute('capture', 'environment');
+  inp.onchange = async e => {
+    const arq = e.target.files[0]; if (!arq) return;
+    e.target.value = '';
+    const aviso = t => { $('#ocr-status').innerHTML = `<div class="lendo"><div class="spin"></div><div class="small">${esc(t)}</div></div>`; };
+    $('#escolher').style.cssText = 'pointer-events:none;opacity:.45';
+    $('#ocr-res').innerHTML = '';
+    const t0 = Date.now();
+    try {
+      const img = await carregarImagem(arq);
+      // Amplia o texto pequeno da foto, passa para preto e branco e apaga as bordas da tabela.
+      aviso('Preparando a imagem…');
+      await new Promise(ok => setTimeout(ok, 30));
+      const c = semBordas(recorte(img, 0, 0, img.width, img.height, Math.min(3000, Math.max(img.width, 2400))));
+      const worker = await workerPor(aviso);
+      // Modo 6 (bloco único) mantém cada linha da tabela inteira; rotateAuto endireita foto torta.
+      await worker.setParameters({tessedit_pageseg_mode: '6', preserve_interword_spaces: '1'});
+      const {data} = await worker.recognize(c, {pdfTitle: 'Nota fiscal', rotateAuto: true}, {text: true, pdf: true});
+      const pdf = URL.createObjectURL(new Blob([new Uint8Array(data.pdf)], {type: 'application/pdf'}));
+      const prod = produtosDanfe(data.text);
+      const ok = prod.itens.filter(i => i.conferido).length;
+      $('#ocr-status').innerHTML = `<div class="status ok">Pronto em ${((Date.now() - t0) / 1000).toFixed(1)} s · confiança média do OCR ${Math.round(data.confidence)}%</div>`;
+      $('#ocr-res').innerHTML = `
+        ${prod.itens.length ? `
+        <div class="card resumo" style="margin-top:12px">
+          <dl class="dados" style="margin-top:0">
+            <dt>Produtos encontrados</dt><dd>${prod.itens.length}</dd>
+            <dt>Linhas conferidas</dt><dd>${ok} de ${prod.itens.length}</dd>
+            <dt>Soma dos produtos</dt><dd>${brl(prod.soma)}</dd>
+          </dl>
+          <div class="status ${prod.somaNaNota && ok === prod.itens.length ? 'ok' : 'warn'}">${prod.somaNaNota
+            ? (ok === prod.itens.length ? '✓ Todas as linhas conferem e a soma bate com um total da nota.' : 'A soma bate com um total da nota, mas confira as linhas marcadas com ⚠.')
+            : 'A soma não bate com nenhum total da nota: pode faltar produto ou ter número lido errado. Confira com a nota.'}</div>
+        </div>
+        ${listaProdutos({produtos: prod.itens.map(i => ({...i, nome: (i.conferido ? '✓ ' : '⚠ ') + i.nome}))})}` : `
+        <div class="status warn" style="margin-top:12px">Não encontrei a tabela de produtos. Fotografe a nota inteira, reta e com boa luz.</div>`}
+        <div class="sec"><h2>Texto extraído</h2><span class="muted small">${data.text.split('\n').filter(l => l.trim()).length} linhas</span></div>
+        <div class="card">
+          <textarea id="ocr-texto" rows="16" class="mono" style="font-size:12px;white-space:pre;overflow:auto">${esc(data.text)}</textarea>
+          <div class="row" style="margin-top:10px">
+            <button id="copiar-texto" class="btn">Copiar texto</button>
+            <a class="btn pri" href="${pdf}" download="nota-fiscal-ocr.pdf">Baixar PDF</a>
+          </div>
+        </div>`;
+      $('#copiar-texto').onclick = () => navigator.clipboard.writeText($('#ocr-texto').value).then(() => toast('Texto copiado'), () => toast('Não deu para copiar'));
+    } catch (err) {
+      $('#ocr-status').innerHTML = `<div class="status bad">Não consegui ler a foto. Verifique a internet e tente de novo.</div>`;
+    }
+    $('#escolher').style.cssText = '';
+  };
 }
 
 window.addEventListener('hashchange', route);

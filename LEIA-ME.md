@@ -95,6 +95,20 @@ CNPJ do emitente que está dentro dela. Se o OCR errar
 um número, a chave não confere e a tela pede para **marcar de novo, tirar outra foto ou
 corrigir à mão**. Uma leitura errada nunca é aceita como certa.
 
+### Teste: produtos da DANFE por OCR, sem API (`#/ocr`)
+
+Link "Teste: extrair todo o texto da nota" na aba de distribuidor. A pessoa fotografa a nota
+inteira e o sistema, no próprio celular e sem custo:
+1. amplia a foto, passa para preto e branco e **apaga as bordas da tabela** (elas viram lixo no OCR);
+2. lê o texto em português com o Tesseract, endireitando a foto se estiver torta;
+3. monta a lista de produtos a partir das linhas da tabela "Dados dos produtos" (as que têm NCM);
+4. **confere cada linha** pela conta quantidade × valor unitário = valor total. Se o OCR perdeu a
+   vírgula de um número, testa as posições possíveis e fica com a que fecha a conta. A soma dos
+   produtos é comparada com os totais impressos na nota;
+5. gera um **PDF pesquisável** (imagem da nota com o texto reconhecido, dá para copiar e buscar).
+
+Linhas que não fecham a conta aparecem com ⚠ para a pessoa conferir.
+
 ## Backend: `GET|POST /api/nfe` (chave de acesso)
 
 ```
