@@ -8,12 +8,13 @@
 <style>
 :root{
   --bg:#f5f3ef;--card:#fff;--ink:#1c1b1a;--muted:#6d6a66;--line:#e7e3dd;--soft:#f0ece6;
-  --accent:#e2552b;--accent-ink:#fff;--accent-soft:#fbe7df;--bad:#c53030;--bad-soft:#fbe3e3;
+  --accent:#e2552b;--accent-ink:#fff;--accent-soft:#fbe7df;
+  --ok:#1e8a5a;--ok-soft:#e1f3ea;--bad:#c53030;--bad-soft:#fbe3e3;
   --radius:14px;--shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04);
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#121212;--card:#1c1c1c;--ink:#f2f0ed;--muted:#a19d98;--line:#2c2b29;--soft:#252422;
-  --accent:#ff6b3d;--accent-soft:#3a2219;--bad:#f07272;--bad-soft:#3d1a1a;--shadow:none;
+  --accent:#ff6b3d;--accent-soft:#3a2219;--ok:#4cc38a;--ok-soft:#163327;--bad:#f07272;--bad-soft:#3d1a1a;--shadow:none;
 }}
 *{box-sizing:border-box}
 html,body{margin:0}
@@ -22,31 +23,59 @@ main{max-width:560px;margin:auto;padding:16px 16px calc(32px + env(safe-area-ins
 h1{font-size:22px;margin:0;letter-spacing:-.01em}
 .muted{color:var(--muted)} .small{font-size:13px}
 .top{display:flex;align-items:center;gap:10px;margin:4px 0 16px}
-.top i{width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700}
+.top i{flex:none;width:30px;height:30px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-style:normal;font-weight:700}
+.top a.voltar{flex:none;width:30px;height:30px;border-radius:9px;background:var(--card);border:1px solid var(--line);display:grid;place-items:center;text-decoration:none;color:var(--ink);font-size:18px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:600;cursor:pointer;text-decoration:none;text-align:center}
 .btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:default}
 .btn.full{width:100%}
+.btns{display:grid;gap:8px;margin-top:12px}
 .row{display:flex;gap:8px}
 .row>*{flex:1}
-input{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+input,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
 
-/* tela 1: câmera */
+/* abas */
+.abas{display:flex;background:var(--soft);border-radius:12px;padding:4px;margin-bottom:14px}
+.abas a{flex:1;text-align:center;padding:9px 6px;border-radius:9px;text-decoration:none;color:var(--muted);font-weight:600;font-size:14px}
+.abas a.on{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+
+/* câmera */
 #leitor{border-radius:var(--radius);overflow:hidden;background:#000;aspect-ratio:1/1;position:relative}
 #leitor video{object-fit:cover}
 #leitor-msg{position:absolute;inset:0;display:grid;place-items:center;color:#ddd;text-align:center;padding:24px;font-size:14px}
-.dica{margin:12px 0 16px;text-align:center}
+.dica{margin:12px 0 4px;text-align:center}
 details{margin-top:12px}
 summary{cursor:pointer;color:var(--muted);font-size:14px;padding:6px 0}
 
-/* tela 2: nota */
+/* marcar a área da chave */
+.passos{display:flex;gap:10px;align-items:flex-start;margin-bottom:12px}
+.passos .num{flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;display:grid;place-items:center;margin-top:1px}
+#area{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;touch-action:none;user-select:none;-webkit-user-select:none}
+#area canvas{display:block;max-width:100%;max-height:62vh;margin:auto;cursor:crosshair}
+.lendo{display:flex;align-items:center;gap:10px;margin-top:12px}
+.lendo .spin{width:20px;height:20px;border-width:3px}
+
+/* chave */
+.chave-in{display:block;resize:none;font:600 17px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em;text-align:center;padding:14px 10px}
+.status{border-radius:12px;padding:10px 12px;font-size:14px;margin-top:10px}
+.status.ok{background:var(--ok-soft);color:var(--ok)}
+.status.bad{background:var(--bad-soft);color:var(--bad)}
+.status.neutro{background:var(--soft);color:var(--muted)}
+.recorte{display:block;max-width:100%;border-radius:8px;border:1px solid var(--line);margin:0 auto 12px;background:#fff}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;overflow-wrap:anywhere}
+
+/* nota */
 .carregando{display:grid;place-items:center;gap:14px;padding:64px 16px;text-align:center}
 .spin{width:38px;height:38px;border-radius:50%;border:4px solid var(--soft);border-top-color:var(--accent);animation:g .8s linear infinite}
 @keyframes g{to{transform:rotate(360deg)}}
 .erro{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.aviso{background:var(--soft);border-color:transparent;font-size:14px}
 .resumo .loja{font-size:18px;font-weight:700;line-height:1.25}
 .resumo .total{display:flex;align-items:baseline;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .resumo .total b{font-size:28px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.dados{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-top:12px;font-size:14px}
+.dados dt{color:var(--muted)} .dados dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
 .itens{list-style:none;margin:0;padding:0}
 .itens li{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
 .itens li:first-child{border-top:0}
@@ -58,68 +87,138 @@ summary{cursor:pointer;color:var(--muted);font-size:14px;padding:6px 0}
 .sec{display:flex;justify-content:space-between;align-items:center;margin:20px 2px 8px}
 .sec h2{font-size:15px;margin:0}
 .fixo{position:sticky;bottom:0;padding:12px 0 calc(4px + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 30%)}
+.toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:50;max-width:90vw;text-align:center}
 </style>
 </head>
 <body>
 <main id="app"></main>
+<input id="foto" type="file" accept="image/*" capture="environment" hidden>
+<div id="leitor-arquivo" hidden></div>
 
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
 (function () {
 'use strict';
-const API = 'api/nfce';
+const TESSERACT_JS = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+const CHAVE_DEMO = '35261012345678000190550010000456781123456788';
+const UFS = {11:1,12:1,13:1,14:1,15:1,16:1,17:1,21:1,22:1,23:1,24:1,25:1,26:1,27:1,28:1,29:1,31:1,32:1,33:1,35:1,41:1,42:1,43:1,50:1,51:1,52:1,53:1};
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const brl = n => n == null ? '—' : Number(n).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'});
 const qtd = n => Number(n).toLocaleString('pt-BR', {maximumFractionDigits: 3});
-let scanner = null;
+const grupos = c => c.replace(/(.{4})(?=.)/g, '$1 ');
+const toast = t => { const d = document.createElement('div'); d.className = 'toast'; d.textContent = t; document.body.append(d); setTimeout(() => d.remove(), 2600); };
 
-/* ---------- roteamento: #/ (câmera) e #/nota?url=... (resultado) ---------- */
-function route() {
+let scanner = null;   // câmera ao vivo
+let foto = null;      // canvas com a foto tirada (para marcar a área)
+let lida = null;      // {chave, ok, recorte} resultado da leitura da foto
+
+/* ---------- chave de acesso: 44 caracteres, DV módulo 11 ---------- */
+// Desde 2026 o CNPJ (posições 7–20) pode ter letras; no DV cada caractere vale (ASCII − 48).
+function dvChave(base43) {
+  let soma = 0, peso = 2;
+  for (let i = base43.length - 1; i >= 0; i--) { soma += (base43.charCodeAt(i) - 48) * peso; peso = peso === 9 ? 2 : peso + 1; }
+  const r = soma % 11; return r < 2 ? 0 : 11 - r;
+}
+const limparChave = s => String(s || '').toUpperCase().replace(/[^0-9A-Z]/g, '');
+function chaveValida(c) {
+  return /^\d{6}[0-9A-Z]{12}\d{26}$/.test(c) && !!UFS[c.slice(0, 2)] && dvChave(c.slice(0, 43)) === +c[43];
+}
+// Procura, dentro do texto lido, uma sequência de 44 dígitos que seja uma chave válida.
+function acharChave(texto) {
+  const linhas = texto.split('\n').map(l => l.replace(/\D/g, '')).filter(Boolean);
+  const candidatos = [...linhas, linhas.join('')];
+  for (const d of candidatos)
+    for (let i = 0; i + 44 <= d.length; i++) {
+      const c = d.slice(i, i + 44);
+      if (/^(55|65)$/.test(c.slice(20, 22)) && chaveValida(c)) return {chave: c, ok: true};
+    }
+  // Não achou: devolve a linha mais parecida com uma chave, para a pessoa corrigir.
+  const melhor = linhas.sort((a, b) => Math.abs(a.length - 44) - Math.abs(b.length - 44))[0] || '';
+  return {chave: melhor.slice(0, 44), ok: false};
+}
+
+/* ---------- rotas ----------
+   #/            câmera para cupom (QR Code)
+   #/nfe         nota de distribuidor: código de barras, foto ou digitar
+   #/nfe/foto    marcar a área da chave na foto
+   #/nfe/chave   conferir / digitar a chave
+   #/nota?url=   resultado do cupom
+   #/chave?c=    resultado da NF-e */
+async function route() {
+  await pararCamera();
   const h = location.hash.replace(/^#\/?/, '');
-  if (h.startsWith('nota')) {
-    const url = new URLSearchParams(h.split('?')[1] || '').get('url');
-    return url ? telaNota(url) : (location.hash = '#/');
-  }
-  telaCamera();
+  const [caminho, q] = h.split('?');
+  const qs = new URLSearchParams(q || '');
+  if (caminho === 'nota') return qs.get('url') ? telaNota(qs.get('url')) : (location.hash = '#/');
+  if (caminho === 'chave') return qs.get('c') ? telaChave(qs.get('c')) : (location.hash = '#/nfe');
+  if (caminho === 'nfe/foto') return foto ? telaMarcar() : (location.hash = '#/nfe');
+  if (caminho === 'nfe/chave') return telaDigitar();
+  telaCamera(caminho === 'nfe' ? 'nfe' : 'cupom');
 }
-function abrirNota(url) { location.hash = '#/nota?url=' + encodeURIComponent(url); }
+const abrirNota = url => { location.hash = '#/nota?url=' + encodeURIComponent(url); };
+const abrirChave = c => { location.hash = '#/chave?c=' + c; };
 
-/* ---------- Tela 1: câmera ---------- */
-function telaCamera() {
+// Serve para as duas abas: QR Code com link → cupom; código de barras com 44 dígitos → NF-e.
+function aoLer(texto) {
+  if (/^https?:\/\//i.test(texto)) { vibrar(); abrirNota(texto); return true; }
+  const c = limparChave(texto);
+  if (c.length === 44 && chaveValida(c)) { vibrar(); abrirChave(c); return true; }
+  return false;
+}
+const vibrar = () => navigator.vibrate && navigator.vibrate(80);
+
+/* ---------- Tela 1: câmera (com abas) ---------- */
+function telaCamera(aba) {
+  const nfe = aba === 'nfe';
   $('#app').innerHTML = `
-    <div class="top"><i>N</i><div><h1>Ler nota fiscal</h1><div class="muted small">Aponte para o QR Code do cupom</div></div></div>
+    <div class="top"><i>N</i><div><h1>Ler nota fiscal</h1><div class="muted small">${nfe ? 'Aponte para o código de barras da nota' : 'Aponte para o QR Code do cupom'}</div></div></div>
+    <nav class="abas"><a href="#/" class="${nfe ? '' : 'on'}">Cupom fiscal</a><a href="#/nfe" class="${nfe ? 'on' : ''}">Nota de distribuidor</a></nav>
     <div id="leitor"><div id="leitor-msg">Abrindo a câmera…</div></div>
-    <p class="dica muted small">O QR Code fica no rodapé do cupom (NFC-e). Segure o celular parado, a uns 15 cm.</p>
-    <details>
-      <summary>Não consegue usar a câmera?</summary>
-      <form id="manual" class="card" style="margin-top:8px">
-        <label class="small muted" for="link">Cole o link do QR Code</label>
-        <input id="link" type="url" inputmode="url" placeholder="https://www.nfce.fazenda…" required style="margin:6px 0 10px">
-        <button class="btn pri full">Consultar nota</button>
-      </form>
-    </details>
-    <div style="margin-top:12px"><button id="demo" class="btn full">Ver nota de exemplo</button></div>`;
-  $('#manual').onsubmit = e => { e.preventDefault(); pararCamera().then(() => abrirNota($('#link').value.trim())); };
-  $('#demo').onclick = () => pararCamera().then(() => abrirNota('demo'));
-  iniciarCamera();
+    ${nfe ? `
+      <p class="dica muted small">O código de barras fica no topo da nota (DANFE), à direita. Se não ler, tire uma foto <b>de perto</b> dessa parte da nota.</p>
+      <div class="btns">
+        <label for="foto" class="btn pri full">Tirar foto e marcar a chave</label>
+        <a href="#/nfe/chave" class="btn full">Digitar os 44 números</a>
+        <button id="demo" class="btn full">Ver nota de exemplo</button>
+      </div>` : `
+      <p class="dica muted small">O QR Code fica no rodapé do cupom (NFC-e). Segure o celular parado, a uns 15 cm.</p>
+      <details>
+        <summary>Não consegue usar a câmera?</summary>
+        <form id="manual" class="card" style="margin-top:8px">
+          <label class="small muted" for="link">Cole o link do QR Code</label>
+          <input id="link" type="url" inputmode="url" placeholder="https://www.nfce.fazenda…" required style="margin:6px 0 10px">
+          <button class="btn pri full">Consultar nota</button>
+        </form>
+      </details>
+      <div class="btns"><button id="demo" class="btn full">Ver nota de exemplo</button></div>`}`;
+  if (nfe) {
+    $('#demo').onclick = () => abrirChave(CHAVE_DEMO);
+  } else {
+    $('#manual').onsubmit = e => { e.preventDefault(); abrirNota($('#link').value.trim()); };
+    $('#demo').onclick = () => abrirNota('demo');
+  }
+  iniciarCamera(nfe);
 }
 
-function iniciarCamera() {
+function iniciarCamera(nfe) {
   const msg = t => { const m = $('#leitor-msg'); if (m) m.textContent = t; };
   if (!window.Html5Qrcode) return msg('Não foi possível carregar o leitor. Verifique a internet.');
   if (!window.isSecureContext) return msg('A câmera só funciona com https:// (ou em localhost).');
-  scanner = new Html5Qrcode('leitor', {verbose: false, formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE]});
-  scanner.start(
+  const s = new Html5Qrcode('leitor', {
+    verbose: false,
+    formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE, Html5QrcodeSupportedFormats.CODE_128],
+    experimentalFeatures: {useBarCodeDetectorIfSupported: true},
+  });
+  scanner = s;
+  s.start(
     {facingMode: 'environment'},
-    {fps: 10, qrbox: (w, h) => { const s = Math.floor(Math.min(w, h) * 0.75); return {width: s, height: s}; }},
-    texto => {
-      if (!/^https?:\/\//i.test(texto)) return; // ignora QR que não é link
-      if (navigator.vibrate) navigator.vibrate(80);
-      pararCamera().then(() => abrirNota(texto));
-    },
+    // Código de barras é largo e baixo; QR Code é quadrado.
+    {fps: 10, qrbox: (w, h) => nfe ? {width: Math.floor(w * 0.9), height: Math.floor(h * 0.4)} : (x => ({width: x, height: x}))(Math.floor(Math.min(w, h) * 0.75))},
+    texto => { if (scanner === s && aoLer(texto)) pararCamera(); },
     () => {}
-  ).then(() => msg('')).catch(() => { scanner = null; msg('Sem acesso à câmera. Libere a permissão no navegador ou cole o link abaixo.'); });
+  ).then(() => msg('')).catch(() => { if (scanner === s) scanner = null; msg('Sem acesso à câmera. Libere a permissão no navegador' + (nfe ? ', tire uma foto ou digite a chave.' : ' ou cole o link abaixo.')); });
 }
 
 function pararCamera() {
@@ -128,27 +227,238 @@ function pararCamera() {
   return s.stop().then(() => s.clear()).catch(() => {});
 }
 
-/* ---------- Tela 2: listagem da nota ---------- */
-async function telaNota(url) {
+/* ---------- Foto: carregar, tentar o código de barras, senão marcar a área ---------- */
+$('#foto').onchange = async e => {
+  const arq = e.target.files[0]; if (!arq) return;
+  // 1º: se o código de barras estiver nítido na foto, nem precisa marcar nada.
+  e.target.value = ''; // permite escolher a mesma foto de novo
   await pararCamera();
-  $('#app').innerHTML = `<div class="carregando"><div class="spin"></div><div><b>Carregando…</b><div class="muted small">Buscando os produtos da nota na SEFAZ</div></div></div>`;
-  let r;
-  try {
-    const resp = await fetch(API, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({url})});
-    r = await resp.json();
-  } catch (e) {
-    r = {ok: false, erro: 'Não foi possível falar com o servidor. Verifique a internet.'};
+  // 1º: se o código de barras estiver nítido na foto, nem precisa marcar nada.
+  if (window.Html5Qrcode) {
+    const leitor = new Html5Qrcode('leitor-arquivo', {verbose: false, formatsToSupport: [Html5QrcodeSupportedFormats.CODE_128, Html5QrcodeSupportedFormats.QR_CODE], experimentalFeatures: {useBarCodeDetectorIfSupported: true}});
+    try {
+      if (aoLer(await leitor.scanFile(arq, false))) { toast('Código de barras lido na foto'); return; }
+    } catch (err) { /* sem código de barras legível: segue para marcar a área */ }
+    finally { try { leitor.clear(); } catch (err) {} }
   }
-  if (!location.hash.startsWith('#/nota')) return; // usuário saiu da tela enquanto carregava
-  if (!r.ok) return telaErro(r.erro || 'Não foi possível ler esta nota.', url);
+  try { foto = await carregarImagem(arq); } catch (err) { return toast('Não consegui abrir a foto. Tente de novo.'); }
+  if (location.hash === '#/nfe/foto') route(); // já estava nessa tela (tirou outra foto)
+  else location.hash = '#/nfe/foto';
+};
 
+// Desenha a foto num canvas, reduzida para no máximo 3000 px no lado maior (economiza memória).
+function carregarImagem(arq) {
+  return new Promise((ok, falha) => {
+    const img = new Image(), url = URL.createObjectURL(arq);
+    img.onload = () => {
+      const k = Math.min(1, 3000 / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url); ok(c);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); falha(); };
+    img.src = url;
+  });
+}
+
+/* ---------- Tela: marcar a área dos 44 números ---------- */
+// A seleção fica guardada em pixels da foto. "vista" é o pedaço da foto que aparece na tela:
+// começa com a foto inteira e, depois de uma marcação pequena, aproxima nela para ajustar.
+function telaMarcar() {
   $('#app').innerHTML = `
-    <div class="top"><i>N</i><h1>Sua nota</h1></div>
-    <div class="card resumo">
-      <div class="loja">${esc(r.estabelecimento)}</div>
-      <div class="muted small">${[r.cnpj && 'CNPJ ' + esc(r.cnpj), r.data_emissao && esc(r.data_emissao)].filter(Boolean).join(' · ')}</div>
-      <div class="total"><span class="muted">Total da nota</span><b>${brl(r.valor_total)}</b></div>
+    <div class="top"><a href="#/nfe" class="voltar" aria-label="Voltar">‹</a><div><h1>Marque a chave</h1><div class="muted small">Os 44 números embaixo de “CHAVE DE ACESSO”</div></div></div>
+    <div class="passos"><span class="num">1</span><div class="small">Encontre a <b>chave de acesso</b> no topo da nota, à direita (fica embaixo do código de barras).</div></div>
+    <div class="passos"><span class="num">2</span><div class="small" id="instrucao"><b>Arraste o dedo</b> por cima <b>só da linha dos números</b>, de um canto ao outro, formando um retângulo.</div></div>
+    <div id="area"><canvas id="tela"></canvas></div>
+    <button id="inteira" class="btn full" style="margin-top:8px" hidden>Ver a foto inteira</button>
+    <div id="lendo"></div>
+    <div class="row" style="margin-top:12px">
+      <label id="outra" for="foto" class="btn">Outra foto</label>
+      <button id="ler" class="btn pri" disabled>Ler números</button>
+    </div>`;
+  const tela = $('#tela'), ctx = tela.getContext('2d');
+  let sel = null, inicio = null, vista, k;
+
+  const mostrar = v => {
+    vista = v; k = Math.min(1600, Math.max(900, v.w)) / v.w;
+    tela.width = Math.round(v.w * k); tela.height = Math.round(v.h * k);
+    $('#inteira').hidden = v.w === foto.width && v.h === foto.height;
+    desenhar();
+  };
+  const desenhar = () => {
+    ctx.drawImage(foto, vista.x, vista.y, vista.w, vista.h, 0, 0, tela.width, tela.height);
+    if (!sel) return;
+    const s = norm(sel), r = {x: (s.x - vista.x) * k, y: (s.y - vista.y) * k, w: s.w * k, h: s.h * k};
+    ctx.fillStyle = 'rgba(0,0,0,.55)';
+    ctx.fillRect(0, 0, tela.width, r.y); ctx.fillRect(0, r.y + r.h, tela.width, tela.height - r.y - r.h);
+    ctx.fillRect(0, r.y, r.x, r.h); ctx.fillRect(r.x + r.w, r.y, tela.width - r.x - r.w, r.h);
+    ctx.strokeStyle = '#ff6b3d'; ctx.lineWidth = Math.max(3, tela.width / 250); ctx.strokeRect(r.x, r.y, r.w, r.h);
+  };
+  const norm = s => ({x: Math.min(s.x1, s.x2), y: Math.min(s.y1, s.y2), w: Math.abs(s.x2 - s.x1), h: Math.abs(s.y2 - s.y1)});
+  // Converte a posição do dedo na tela para pixels da foto.
+  const ponto = e => {
+    const b = tela.getBoundingClientRect();
+    const x = vista.x + (e.clientX - b.left) / b.width * vista.w, y = vista.y + (e.clientY - b.top) / b.height * vista.h;
+    return {x: Math.max(vista.x, Math.min(vista.x + vista.w, x)), y: Math.max(vista.y, Math.min(vista.y + vista.h, y))};
+  };
+  tela.onpointerdown = e => { tela.setPointerCapture(e.pointerId); inicio = ponto(e); sel = {x1: inicio.x, y1: inicio.y, x2: inicio.x, y2: inicio.y}; desenhar(); };
+  tela.onpointermove = e => { if (!inicio) return; const p = ponto(e); sel.x2 = p.x; sel.y2 = p.y; desenhar(); };
+  tela.onpointerup = tela.onpointercancel = () => {
+    inicio = null;
+    const r = sel && norm(sel);
+    if (!r || r.w < vista.w * 0.05 || r.h * k < 4) { sel = null; desenhar(); $('#ler').disabled = true; return; }
+    $('#ler').disabled = false;
+    // Marcação pequena na tela: aproxima nela (com folga) para a pessoa conferir e ajustar.
+    if (r.w < vista.w * 0.5) {
+      const w = Math.min(foto.width, r.w * 1.4), h = Math.min(foto.height, Math.max(r.h * 3, w / 3));
+      const x = Math.max(0, Math.min(foto.width - w, r.x + r.w / 2 - w / 2)), y = Math.max(0, Math.min(foto.height - h, r.y + r.h / 2 - h / 2));
+      mostrar({x, y, w, h});
+      $('#instrucao').innerHTML = 'Aproximei. Se o retângulo não cobrir <b>todos os 44 números</b>, arraste de novo. Depois toque em <b>Ler números</b>.';
+    }
+  };
+  $('#inteira').onclick = () => mostrar({x: 0, y: 0, w: foto.width, h: foto.height});
+  mostrar({x: 0, y: 0, w: foto.width, h: foto.height});
+
+  $('#ler').onclick = async () => {
+    $('#ler').disabled = true; $('#outra').style.cssText = 'pointer-events:none;opacity:.45';
+    const aviso = t => { $('#lendo').innerHTML = `<div class="lendo"><div class="spin"></div><div class="small">${esc(t)}</div></div>`; };
+    aviso('Preparando…');
+    try {
+      lida = await Promise.race([
+        lerChaveDaImagem(foto, norm(sel), aviso),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('tempo')), 90000)),
+      ]);
+    } catch (err) {
+      lida = {chave: '', ok: false, erroLeitura: true};
+    }
+    location.hash = '#/nfe/chave';
+  };
+}
+
+/* ---------- OCR dos números (Tesseract.js, carregado só quando precisa) ---------- */
+let ocr = null, ocrAviso = () => {};
+function carregarScript(src) {
+  return new Promise((ok, falha) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = falha; document.head.append(s); });
+}
+async function workerOcr(aviso) {
+  if (!ocr) {
+    ocr = (async () => {
+      if (!window.Tesseract) await carregarScript(TESSERACT_JS);
+      // Erros dentro do worker (ex.: falha ao baixar o idioma) não rejeitam a promessa sozinhos.
+      let falhou;
+      const erro = new Promise((_, rej) => { falhou = rej; });
+      return Promise.race([erro, Tesseract.createWorker('eng', 1, {
+        logger: m => { if (m.status === 'recognizing text') ocrAviso('Lendo os números… ' + Math.round(m.progress * 100) + '%'); },
+        errorHandler: e => falhou(e),
+      })]);
+    })();
+    ocr.catch(() => { ocr = null; });
+  }
+  ocrAviso = aviso;
+  aviso('Carregando o leitor de números (na primeira vez demora um pouco)…');
+  return ocr;
+}
+
+async function lerChaveDaImagem(img, r, aviso) {
+  // Recorta com uma folga e amplia para ~1400 px de largura (o Tesseract erra menos com texto grande).
+  const pad = Math.round(Math.max(r.h * 0.15, 4));
+  const x = Math.max(0, Math.round(r.x - pad)), y = Math.max(0, Math.round(r.y - pad));
+  const w = Math.min(img.width - x, Math.round(r.w + pad * 2)), h = Math.min(img.height - y, Math.round(r.h + pad * 2));
+  const k = Math.max(1, Math.min(4, 1400 / w));
+  const base = document.createElement('canvas');
+  base.width = Math.round(w * k); base.height = Math.round(h * k);
+  const bctx = base.getContext('2d');
+  bctx.imageSmoothingQuality = 'high';
+  bctx.drawImage(img, x, y, w, h, 0, 0, base.width, base.height);
+
+  const cinza = filtrar(base, false), pb = filtrar(base, true);
+  const worker = await workerOcr(aviso);
+  await worker.setParameters({tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '6'});
+  // Tenta primeiro a versão preto e branco; se não achar uma chave válida, tenta em tons de cinza.
+  let melhor = null;
+  for (const c of [pb, cinza]) {
+    const {data} = await worker.recognize(c);
+    const achou = acharChave(data.text);
+    if (achou.ok) return {...achou, recorte: c.toDataURL('image/png')};
+    if (!melhor || Math.abs(achou.chave.length - 44) < Math.abs(melhor.chave.length - 44)) melhor = {...achou, recorte: c.toDataURL('image/png')};
+  }
+  return melhor;
+}
+
+// Tons de cinza e, se pedido, preto e branco com limiar automático (Otsu).
+function filtrar(origem, binario) {
+  const c = document.createElement('canvas'); c.width = origem.width; c.height = origem.height;
+  const ctx = c.getContext('2d'); ctx.drawImage(origem, 0, 0);
+  const d = ctx.getImageData(0, 0, c.width, c.height), px = d.data, hist = new Array(256).fill(0);
+  for (let i = 0; i < px.length; i += 4) { const g = Math.round(px[i] * .299 + px[i + 1] * .587 + px[i + 2] * .114); px[i] = px[i + 1] = px[i + 2] = g; hist[g]++; }
+  if (binario) {
+    const total = px.length / 4; let soma = 0; for (let i = 0; i < 256; i++) soma += i * hist[i];
+    let sB = 0, wB = 0, max = 0, limiar = 127;
+    for (let t = 0; t < 256; t++) {
+      wB += hist[t]; if (!wB) continue; const wF = total - wB; if (!wF) break;
+      sB += t * hist[t]; const mB = sB / wB, mF = (soma - sB) / wF, v = wB * wF * (mB - mF) ** 2;
+      if (v > max) { max = v; limiar = t; }
+    }
+    for (let i = 0; i < px.length; i += 4) px[i] = px[i + 1] = px[i + 2] = px[i] > limiar ? 255 : 0;
+  }
+  ctx.putImageData(d, 0, 0);
+  return c;
+}
+
+/* ---------- Tela: conferir / digitar a chave ---------- */
+function telaDigitar() {
+  const r = lida; lida = null;
+  const daFoto = !!r;
+  $('#app').innerHTML = `
+    <div class="top"><a href="#/nfe" class="voltar" aria-label="Voltar">‹</a><div><h1>${daFoto ? 'Confira a chave' : 'Digite a chave'}</h1><div class="muted small">${daFoto ? 'Compare com a nota antes de buscar' : 'Os 44 números embaixo de “CHAVE DE ACESSO”'}</div></div></div>
+    <div class="card">
+      ${daFoto && r.recorte ? `<img class="recorte" src="${r.recorte}" alt="Área marcada na foto">` : ''}
+      <textarea id="chave" class="chave-in" rows="2" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="0000 0000 0000 0000 …">${esc(grupos(r ? r.chave : ''))}</textarea>
+      <div id="status"></div>
+      <button id="buscar" class="btn pri full" style="margin-top:12px" disabled>Buscar nota</button>
     </div>
+    ${daFoto ? `<div class="row" style="margin-top:12px"><a href="#/nfe/foto" class="btn">Marcar de novo</a><label for="foto" class="btn">Tirar outra foto</label></div>` : ''}`;
+
+  const inp = $('#chave');
+  const conferir = () => {
+    const c = limparChave(inp.value).slice(0, 44);
+    const fim = inp.selectionStart === inp.value.length;
+    inp.value = grupos(c);
+    if (fim) inp.setSelectionRange(inp.value.length, inp.value.length);
+    const ok = c.length === 44 && chaveValida(c);
+    let st;
+    if (ok) st = `<div class="status ok">✓ Chave conferida${daFoto ? '. Confira se bate com a nota.' : ''}</div>`;
+    else if (c.length === 44) st = `<div class="status bad">Essa chave não confere: algum número está errado. ${daFoto ? 'Corrija aqui, marque de novo ou tire outra foto mais de perto.' : 'Confira com a nota.'}</div>`;
+    else if (daFoto && c.length === 0 && r.erroLeitura) st = `<div class="status bad">Não consegui carregar o leitor de números. Verifique a internet ou digite a chave.</div>`;
+    else if (daFoto && !c.length) st = `<div class="status bad">Não encontrei números nessa área. Marque de novo, tire outra foto mais de perto ou digite.</div>`;
+    else st = `<div class="status ${daFoto ? 'bad' : 'neutro'}">${daFoto ? 'Não consegui ler todos os números (' + c.length + ' de 44). Complete aqui, marque de novo ou tire outra foto.' : c.length + ' de 44 números'}</div>`;
+    $('#status').innerHTML = st;
+    $('#buscar').disabled = !ok;
+    return ok ? c : '';
+  };
+  inp.oninput = conferir;
+  $('#buscar').onclick = () => { const c = conferir(); if (c) abrirChave(c); };
+  inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#buscar').click(); } };
+  conferir();
+  if (!daFoto) inp.focus();
+}
+
+/* ---------- Telas de resultado ---------- */
+const carregando = t => { $('#app').innerHTML = `<div class="carregando"><div class="spin"></div><div><b>Carregando…</b><div class="muted small">${t}</div></div></div>`; };
+
+async function consultar(rota, corpo) {
+  try {
+    const resp = await fetch(rota, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(corpo)});
+    return await resp.json();
+  } catch (e) {
+    return {ok: false, erro: 'Não foi possível falar com o servidor. Verifique a internet.'};
+  }
+}
+
+function listaProdutos(r) {
+  if (!r.produtos || !r.produtos.length) return '';
+  return `
     <div class="sec"><h2>Produtos</h2><span class="muted small">${r.produtos.length} ${r.produtos.length === 1 ? 'item' : 'itens'}</span></div>
     <div class="card" style="padding:4px 16px">
       <ul class="itens">${r.produtos.map(p => `
@@ -161,20 +471,60 @@ async function telaNota(url) {
           <div class="v">${brl(p.preco_total)}</div>
         </li>`).join('')}
       </ul>
+    </div>`;
+}
+
+async function telaNota(url) {
+  carregando('Buscando os produtos da nota na SEFAZ');
+  const r = await consultar('api/nfce', {url});
+  if (!location.hash.startsWith('#/nota')) return; // saiu da tela enquanto carregava
+  if (!r.ok) return telaErro(r.erro || 'Não foi possível ler esta nota.', () => telaNota(url), '#/');
+  $('#app').innerHTML = `
+    <div class="top"><i>N</i><h1>Sua nota</h1></div>
+    <div class="card resumo">
+      <div class="loja">${esc(r.estabelecimento)}</div>
+      <div class="muted small">${[r.cnpj && 'CNPJ ' + esc(r.cnpj), r.data_emissao && esc(r.data_emissao)].filter(Boolean).join(' · ')}</div>
+      <div class="total"><span class="muted">Total da nota</span><b>${brl(r.valor_total)}</b></div>
     </div>
+    ${listaProdutos(r)}
     ${r.fonte === 'demo' ? '<p class="muted small" style="text-align:center">Esta é uma nota de exemplo.</p>' : ''}
     <div class="fixo"><a href="#/" class="btn pri full">Ler outra nota</a></div>`;
 }
 
-function telaErro(msg, url) {
+async function telaChave(c) {
+  carregando('Consultando a nota fiscal');
+  const r = await consultar('api/nfe', {chave: c});
+  if (!location.hash.startsWith('#/chave')) return;
+  if (!r.ok) return telaErro(r.erro || 'Não foi possível consultar esta nota.', () => telaChave(c), '#/nfe');
+  const dados = [
+    ['CNPJ do emitente', r.cnpj], ['Número / série', r.numero + ' / ' + r.serie],
+    ['Emissão', r.data_emissao || r.mes_emissao], ['Estado', r.uf], ['Tipo', r.modelo],
+  ].filter(d => d[1]);
+  $('#app').innerHTML = `
+    <div class="top"><i>N</i><h1>Nota de distribuidor</h1></div>
+    <div class="card resumo">
+      <div class="loja">${esc(r.estabelecimento || r.modelo + ' nº ' + r.numero)}</div>
+      <dl class="dados">${dados.map(d => `<dt>${esc(d[0])}</dt><dd>${esc(d[1])}</dd>`).join('')}</dl>
+      ${r.valor_total != null ? `<div class="total"><span class="muted">Total da nota</span><b>${brl(r.valor_total)}</b></div>` : ''}
+      <div class="muted small mono" style="margin-top:12px">${esc(grupos(r.chave))}</div>
+      <button id="copiar" class="btn full" style="margin-top:10px">Copiar chave</button>
+    </div>
+    ${r.aviso ? `<div class="card aviso" style="margin-top:12px">${esc(r.aviso)}</div>` : ''}
+    ${listaProdutos(r)}
+    ${r.fonte === 'demo' ? '<p class="muted small" style="text-align:center">Esta é uma nota de exemplo.</p>' : ''}
+    <div class="fixo"><a href="#/nfe" class="btn pri full">Ler outra nota</a></div>`;
+  $('#copiar').onclick = () => navigator.clipboard.writeText(r.chave).then(() => toast('Chave copiada'), () => toast('Não deu para copiar'));
+}
+
+function telaErro(msg, tentar, voltar) {
   $('#app').innerHTML = `
     <div class="top"><i>N</i><h1>Não deu certo</h1></div>
     <div class="card erro">${esc(msg)}</div>
     <div class="row" style="margin-top:14px">
       <button id="denovo" class="btn">Tentar de novo</button>
-      <a href="#/" class="btn pri">Ler outra nota</a>
+      <a href="${voltar}" class="btn pri">Ler outra nota</a>
     </div>`;
-  $('#denovo').onclick = () => telaNota(url);
+  $('#denovo').onclick = tentar;
 }
 
 window.addEventListener('hashchange', route);

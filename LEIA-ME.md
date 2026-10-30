@@ -76,6 +76,34 @@ Rota pública, **sem login**: `/nota` (ou `/nota.html`).
 2. **Tela da nota** (`#/nota?url=...`): mostra "Carregando…", chama o backend e lista
    estabelecimento, data, total e os produtos (quantidade × preço unitário = total).
 
+### Nota de distribuidor (NF-e / DANFE) — aba "Nota de distribuidor"
+
+Para notas que não são cupom (revendedor, distribuidor), o sistema usa a **chave de acesso**
+de 44 dígitos. Há três jeitos de ler, do mais rápido ao mais manual:
+
+1. **Código de barras ao vivo**: a câmera lê o código de barras do topo da DANFE (ele contém a chave).
+2. **Foto**: a pessoa tira uma foto. Se o código de barras estiver nítido na foto, a leitura é
+   direta. Se não, ela **arrasta o dedo sobre os números** da chave. A tela aproxima na área
+   marcada para conferir, e o OCR ([Tesseract.js](https://github.com/naptha/tesseract.js),
+   carregado só nessa hora) lê os números.
+3. **Digitar**: um campo com os números agrupados de 4 em 4 e contador.
+
+Em todos os casos, a chave é conferida pelo **dígito verificador** (módulo 11). Se o OCR errar
+um número, a chave não confere e a tela pede para **marcar de novo, tirar outra foto ou
+corrigir à mão**. Uma leitura errada nunca é aceita como certa.
+
+## Backend: `GET|POST /api/nfe` (chave de acesso)
+
+```
+POST /api/nfe   { "chave": "<44 dígitos>" }
+```
+
+Sempre devolve o que está dentro da própria chave: `uf`, `mes_emissao`, `cnpj` do emitente,
+`modelo`, `serie` e `numero`. **Os produtos só vêm com uma API externa configurada**
+(`NFE_API_URL` + `NFE_API_KEY`, recebe `POST { chave }`), porque a consulta completa da NF-e na
+SEFAZ pede captcha ou certificado digital. Sem API, a resposta vem com `produtos: []` e um `aviso`.
+A chave `35261012345678000190550010000456781123456788` devolve uma nota de exemplo.
+
 ## Backend: `GET|POST /api/nfce`
 
 ```
@@ -120,5 +148,5 @@ De onde vêm os dados:
   Em *Settings > Environment Variables*, adicione `NFPARSE_API_KEY` (e `NFPARSE_API_URL`,
   se precisar). O Netlify Drop **não** roda o backend, então use a Vercel para esta parte.
 
-Arquivos: `nota.html` (as duas telas), `api/nfce.js` (rota), `servidor.js` (Express local),
-`vercel.json` (atalho `/nota`).
+Arquivos: `nota.html` (todas as telas), `api/nfce.js` (cupom), `api/nfe.js` (NF-e por chave),
+`api/_comum.js` (funções compartilhadas), `servidor.js` (Express local), `vercel.json` (atalho `/nota`).
